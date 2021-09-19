@@ -14,6 +14,13 @@
                 <div class="text-center">
                     <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
                 </div>
+                @if(session()->get('error'))
+                    <div class="alert alert-danger">
+                        <ul>
+                            <li><p class="text-xs">{{ session()->get('error') }}</p></li>
+                        </ul>
+                    </div>
+                @endif
                 <form
                     class="user"
                     action="{{ route('register') }}"
@@ -22,13 +29,13 @@
                     {{ csrf_field() }}
                     <div class="form-group">
                     <input
-                        value="{{ old('name') }}"
+                        value="{{ old('company_name') }}"
                         type="text"
-                        class="form-control form-control-user @error('name') is-invalid @enderror"
-                        name="name"
-                        id="name"
-                        placeholder="Customer Name"
-                        autocomplete="name"
+                        class="form-control form-control-user @error('company_name') is-invalid @enderror"
+                        name="company_name"
+                        id="company_name"
+                        placeholder="Company Name"
+                        autocomplete="company_name"
                         required
                         autofocus
                     />
@@ -39,12 +46,31 @@
                     @enderror
                     </div>
                     <div class="form-group">
+                        <input
+                            value="{{ old('username') }}"
+                            type="text"
+                            class="form-control form-control-user @error('username') is-invalid @enderror"
+                            name="username"
+                            id="username"
+                            placeholder="Username"
+                            autocomplete="username"
+                            required
+                            autofocus
+                        />
+                        @error('username')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                        @enderror
+                        </div>
+                    <div class="form-group">
                     <input
                         type="email"
                         class="form-control form-control-user @error('email') is-invalid @enderror"
+                        value="{{ old('email') }}"
                         name="email"
                         id="email"
-                        placeholder="Email Address"
+                        placeholder="Email Address" required
                     />
                     @error('email')
                         <span class="invalid-feedback" role="alert">
@@ -59,7 +85,7 @@
                         class="form-control form-control-user @error('password') is-invalid @enderror"
                         name="password"
                         id="password"
-                        value="{{ old('email') }}"
+                        value="{{ old('password') }}"
                         placeholder="Password"
                         required
                         autocomplete="email"
@@ -84,136 +110,13 @@
                     </div>
                     <div class="form-group">
                     <input
-                        value="{{ old('tempat_lahir') }}"
+                        value="{{ old('no_telp_company') }}"
                         type="text"
-                        class="form-control form-control-user @error('tempat_lahir') is-invalid @enderror"
-                        name="tempat_lahir"
-                        id="tempat_lahir"
-                        placeholder="Tempat lahir"
-                        required
-                    />
-                    @error('tempat_lahir')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                    </div>
-                    <div class="form-group row">
-                    <div class="col-md-3 mt-1 mb-3 mb-sm-0">
-                        <label class="col-form-label">Tanggal Lahir : </label>
-                    </div>
-                    <div class="col-md-9">
-                        <input
-                        value="{{ old('tanggal_lahir') }}"
-                        type="date"
-                        class="form-control form-control-user @error('tanggal_lahir') is-invalid @enderror"
-                        name="tanggal_lahir"
-                        id="tanggal_lahir"
-                        placeholder="Tanggal lahir"
-                        required
-                        />
-                        @error('tanggal_lahir')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
-                    </div>
-                    <div class="form-group row">
-                    <label
-                        for="jenisKelamin"
-                        id="txtjenisKelamin"
-                        class="col-md-3 col-form-label"
-                        >Jenis Kelamin :
-                    </label>
-                    <div class="col-md-9">
-                        <div class="form-check pt-2">
-                        <input
-                            class="form-check-input @error('jenis_kelamin') is-invalid @enderror"
-                            type="radio"
-                            name="jenis_kelamin"
-                            value="Laki-Laki"
-                            required
-                            autocomplete="jenis_kelamin"
-                            required
-                            {{ old('jenis_kelamin')=="Laki-Laki" ? 'checked':'' }}
-                        />
-
-                        <label
-                            id="jkLabelLaki"
-                            class="form-check-label"
-                            for="Laki-laki"
-                        >
-                            Laki-Laki
-                        </label>
-                        </div>
-                    </div>
-                    <div class="col-md-3"></div>
-                    <div class="col-md-9">
-                        <div class="form-check">
-                        <input
-                            class="form-check-input"
-                            type="radio"
-                            name="jenis_kelamin"
-                            value="Perempuan"
-                            {{ old('jenis_kelamin')=="Perempuan" ? 'checked':'' }}
-                            required
-                        />
-                        <label
-                            id="jkLabelPerempuan"
-                            class="form-check-label"
-                            for="Perempuan"
-                        >
-                            Perempuan
-                        </label>
-                        @error('jenis_kelamin')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
-                        </div>
-                    </div>
-                    </div>
-                    <div class="form-group row">
-                    <label
-                        for="text"
-                        id="txtagama"
-                        class="col-md-3 col-form-label"
-                        >Agama :
-                    </label>
-                    <div class="col-md-9">
-                        <select
-                        class="form-control rounded @error('agama') is-invalid @enderror"
-                        name="agama"
-                        id="agama"
-                        style="width: 100%;"
-                        required
-                        auto-complete="agama"
-                        >
-                        <option value="" disabled selected hidden
-                            >Pilih agama anda</option
-                        >
-                        <option value="Advent" {{ old('agama')=="Advent" ? 'selected':'' }}>Advent</option>
-                        <option value="Islam" {{ old('agama')=="Islam" ? 'selected':'' }}>Islam</option>
-                        <option value="Protestan" {{ old('agama')=="Protestan" ? 'selected':'' }}>Protestan</option>
-                        <option value="Budha" {{ old('agama')=="Budha" ? 'selected':'' }}>Budha</option>
-                        <option value="Hindu" {{ old('agama')=="Hindu" ? 'selected':'' }}>Hindu</option>
-                        </select>
-                        @error('agama')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                        @enderror
-                    </div>
-                    </div>
-                    <div class="form-group">
-                    <input
-                        value="{{ old('no_telp') }}"
-                        type="text"
-                        class="form-control form-control-user @error('no_telp') is-invalid @enderror"
-                        name="no_telp"
-                        id="no_telp"
-                        placeholder="No Telepon"
+                        class="form-control form-control-user is_numeric @error('no_telp_company') is-invalid @enderror"
+                        name="no_telp_company"
+                        id="no_telp_company"
+                        placeholder="No Telepon Perusahaan"
+                        value="{{ old('no_telp_company') }}"
                         required
                     />
                     @error('no_telp')
@@ -223,12 +126,30 @@
                     @enderror
                     </div>
                     <div class="form-group">
+                        <input
+                            value="{{ old('no_telp') }}"
+                            type="text"
+                            class="form-control form-control-user is_numeric @error('no_telp') is-invalid @enderror"
+                            name="no_telp"
+                            id="no_telp"
+                            placeholder="No Telepon"
+                            value="{{ old('no_telp') }}"
+                            required
+                        />
+                        @error('no_telp')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                        @enderror
+                        </div>
+                    <div class="form-group">
                     <input
                         value="{{ old('alamat') }}"
                         type="text"
                         class="form-control form-control-user @error('alamat') is-invalid @enderror"
                         name="alamat"
                         id="alamat"
+                        value="{{ old('alamat') }}"
                         placeholder="Alamat / Lokasi perusahaan"
                         required
                     />
@@ -242,7 +163,7 @@
                     href="login.html"
                     class="btn btn-primary btn-user btn-block"
                     >
-                    Register Account
+                    Register Company
                     </button>
                     <hr />
                     <a href="{{ url('/') }}" class="btn btn-danger btn-user btn-block">
@@ -250,11 +171,11 @@
                     </a>
                 </form>
                 <hr />
-                <div class="text-center">
-                    <a class="small" href="forgot-password.html"
-                    >Forgot Password?</a
-                    >
-                </div>
+                {{-- @if (Route::has('password.request'))
+                    <div class="text-center">
+                        <a class="small" href="{{ route('password.request') }}">Forgot Password?</a>
+                    </div>
+                @endif --}}
                 <div class="text-center">
                     <a class="small" href="{{ route('login') }}"
                     >Already have an account? Login!</a
@@ -266,4 +187,20 @@
         </div>
         </div>
     </div>
+@endsection
+
+@section('script')
+<script>
+    $(document).ready(function (){
+        $('.is_numeric').keyup(function(e)
+                                {
+        if (/\D/g.test(this.value))
+        {
+            // Filter non-digits from input value.
+            this.value = this.value.replace(/\D/g, '');
+        }
+        });
+    });
+</script>
+
 @endsection

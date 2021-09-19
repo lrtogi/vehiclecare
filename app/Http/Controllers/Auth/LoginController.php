@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 
@@ -49,22 +50,42 @@ class LoginController extends Controller
             'email' => 'required',
             'password' => 'required',
         ]);
-
         $email = $request->email;
         $user = User::where(function($query) use ($email){
             $query->orWhere('email', $email);
             $query->orWhere('username', $email);
         })->first();
+        if(empty($user)){
+            return redirect()->route('login')->with('error','User Not Found.');
+        }
         $checkPassword = Hash::check($request->password, $user->password);
+        $company = User::join('m_company', 'm_company.company_id', 'users.company_id')->where('users.id', $user->id)->select(['m_company.*'])->first();
         if($checkPassword)
         {
             if ($user->user_type == 3) {
-                auth()->attempt(array('email' => $input['email'], 'password' => $input['password']));
+                if(filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
+                    //user sent their email 
+                    auth()->attempt(array('email' => $input['email'], 'password' => $input['password']));
+                } else {
+                    //they sent their username instead 
+                    auth()->attempt(array('username' => $input['email'], 'password' => $input['password']));
+                }
                 return redirect()->route('admin.home')->with('status',"Selamat anda telah berhasil login");
             }else{
                 if ($user->user_type == 2) {
-                    auth()->attempt(array('email' => $input['email'], 'password' => $input['password']));
-                    return redirect()->route('home');
+                    if($company->active == 0 || empty($company)){
+                        return redirect()->route('login')->with('error','Your company has not been activated yet by admin.');
+                    }
+                    else{
+                        if(filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
+                            //user sent their email 
+                            auth()->attempt(array('email' => $input['email'], 'password' => $input['password']));
+                        } else {
+                            //they sent their username instead 
+                            auth()->attempt(array('username' => $input['email'], 'password' => $input['password']));
+                        }
+                        return redirect()->route('home');
+                    }
                 }
                 else{
                     return redirect()->route('login')

@@ -8,22 +8,23 @@ use Illuminate\Database\Eloquent\Model;
 use DB;
 class Company extends Model
 {
-    const CREATED_AT = 'dt_record';
-    const UPDATED_AT = 'dt_modified';
+    const CREATED_AT = 'created_at';
+    const UPDATED_AT = 'updated_at';
 
     public $incrementing = false;
 
-    const UNIQUE_PREFIX_CHAR = 'S';
-    const TOTAL_NUMBER_DIGIT_CHAR = 6;
-
     protected $table = 'm_company';
     protected $primaryKey = 'company_id';
+    protected $fillable = [
+        'company_name', 'company_id', 'pic_email', 'no_telp', 'agama', 'alamat_perusahaan', 'created_user', 'updated_user', 'active', 'approved'
+    ];
+    protected $guarded = ['id_customer', '_token'];
 
     public function getTableColumns() {
         return $this->getConnection()->getSchemaBuilder()->getColumnListing($this->getTable());
     }
 
     public function user() {
-        return $this->belongsTo('App\User', 'user_id', 'user_record');
+        return $this->belongsTo('App\User', 'username', 'user_record');
     }
 }

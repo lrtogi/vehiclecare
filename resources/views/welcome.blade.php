@@ -60,18 +60,20 @@
           </ul>
           <div class="right-button hidden-xs">
             @if (Route::has('login'))
-                {{-- @auth
-                    <a href="{{ route('home') }}">Home</a>
-                    @if(Auth::user()->isStaff==1)
-                    <a href="{{ route('staff.home') }}">Home Staff</a>
+                @auth
+                    @if(Auth::user()->user_type == 2)
+                    <a href="{{ route('home') }}">Dashboard Company</a>
+                    @endif
+                    @if(Auth::user()->user_type == 3)
+                    <a href="{{ route('home') }}">Dashboard Admin</a>
                     @endif
                 @else
                     <a href="{{ route('login') }}">Login</a>
 
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}">Register</a>
+                        <a href="{{ route('register') }}">Register Company</a>
                     @endif
-                @endauth --}}
+                @endauth
             @endif
           </div>
         </div>

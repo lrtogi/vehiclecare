@@ -69,12 +69,20 @@ class APIController extends Controller
         }
 
         if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){ 
-            $user = Auth::user(); 
-            $success['token'] =  $user->createToken('auth_token')->plainTextToken; 
+            $user = Auth::user();
+            if($user->user_type == 0){
+                $success['token'] =  $user->createToken('auth_token', ['role:customer'])->plainTextToken; 
+            }
+            elseif($user->user_type == 1)
+                $success['token'] =  $user->createToken('auth_token', ['role:worker'])->plainTextToken;
+            elseif($user->user_type == 2)
+                $success['token'] =  $user->createToken('auth_token', ['role:company'])->plainTextToken;
+            elseif($user->user_type == 3)
+                $success['token'] =  $user->createToken('auth_token', ['role:admin'])->plainTextToken;
             $success['name'] =  $user->name;
             return response()->json(['result' => true, $success]);
         } 
-        else{ 
+        else{
             return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
         } 
 

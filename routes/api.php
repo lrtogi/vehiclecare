@@ -21,4 +21,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // Route::get('test', ['uses' => [App\Http\Controllers\CompanyController::class, 'index'], 'as' => '/test'])->middleware();
-Route::get('test', 'CompanyController@index')->middleware('auth:sanctum');
+Route::get('test', 'CompanyController@index')->middleware(['auth:sanctum', 'isAdmin']);

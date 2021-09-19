@@ -27,6 +27,11 @@
                             </ul>
                         </div>
                         @endif
+                        @if(isset($_GET['register']) && $_GET['register'] == 'success')
+                        <div class="alert alert-success">
+                            <p class="text-xs">{{ 'Successfully Registered! Please wait for approval.' }}</p>
+                        </div>
+                        @endif
                     <form class="user" method="POST" action="{{ route('login') }}">
                         @csrf
                         <div class="form-group">
@@ -60,11 +65,11 @@
                         </a>
                     </form>
                     <hr>
-                    @if (Route::has('password.request'))
+                    {{-- @if (Route::has('password.request'))
                     <div class="text-center">
                         <a class="small" href="{{ route('password.request') }}">Forgot Password?</a>
                     </div>
-                    @endif
+                    @endif --}}
                     <div class="text-center">
                         <a class="small" href="{{ route('register') }}">Create an Account!</a>
                     </div>
