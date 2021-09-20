@@ -64,7 +64,7 @@
 
       <!-- Heading -->
       <div class="sidebar-heading">
-        Menu untuk Pelanggan
+        Master Data
       </div>
 
       {{-- <!-- Nav Item - Transaction -->
@@ -80,9 +80,9 @@
             <a class="collapse-item {{ Route::is('transaction.create') ? 'active' : '' }}" href="{{ route('transaction.create') }}">Tambah Transaksi</a>
           </div>
         </div>
-      </li>
+      </li> --}}
 
-      <!-- Nav Item - Nota -->
+      {{-- <!-- Nav Item - Nota -->
       <li class="nav-item {{ Route::is('notas.index') ? 'active' : '' }}">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities" aria-expanded="true" aria-controls="collapseUtilities">
           <i class="fas fa-fw fa-file-medical"></i>

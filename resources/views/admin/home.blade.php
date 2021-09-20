@@ -8,6 +8,18 @@
         {{ session('status') }}
     </div>
 @endif
+@if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ session('success') }}
+    </div>
+@endif
+@if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ session('error') }}
+    </div>
+@endif
 <div class="row justify-content-center">
     <div class="col-md-12">
         <div class="card">
@@ -26,8 +38,8 @@
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                    <div class="text-m font-weight-bold text-primary text-uppercase mb-1">Annual Earnings</div>
-                    {{-- <div class="h5 mb-0 font-weight-bold text-gray-800" id="total_earnings">Rp. {{ $sum }}</div> --}}
+                    <div class="text-m font-weight-bold text-primary text-uppercase mb-1">Active Company</div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeCompany"></div>
                     </div>
                     <div class="col-auto">
                     <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -86,6 +98,52 @@
         </div>
     </div>
 </div>
+<div class="modal fade modal-size-small" id="rejectModal" role="dialog">
+    <div class="modal-dialog modal-mid">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="titleReport">Reject Company</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form action="{{route('admin/rejectCompany')}}" method="post" class="action" id="form-so" enctype='multipart/form-data'>
+                {{ csrf_field() }}
+                <div class="modal-body" style="background-color:whitesmoke;">
+                    <div class="modal-body modalsContent">
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-pure btn-sm mr-auto" data-dismiss="modal">Close</button>
+                    <button type="submit" id="btn-insert-excel" class="btn btn-sm btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade modal-size-small" id="approveModal" role="dialog">
+    <div class="modal-dialog modal-mid">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="titleReport">Approve Company</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <form action="{{route('admin/approveCompany')}}" method="post" class="action" id="form-so" enctype='multipart/form-data'>
+                {{ csrf_field() }}
+                <div class="modal-body" style="background-color:whitesmoke;">
+                    <div class="modal-body modalsContent">
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-pure btn-sm mr-auto" data-dismiss="modal">Close</button>
+                    <button type="submit" id="btn-insert-excel" class="btn btn-sm btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @endsection
 
@@ -99,6 +157,7 @@
             url: totalCompanyUrl,
             success:function(data) {
                 document.getElementById('companyPending').innerHTML = data.total;
+                document.getElementById('activeCompany').innerHTML = data.activeCompany;
             }
         });
     }

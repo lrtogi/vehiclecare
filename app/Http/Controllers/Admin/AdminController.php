@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Company\Company;
 use Log;
+use DB;
 
 class AdminController extends Controller
 {
@@ -113,10 +114,60 @@ class AdminController extends Controller
 
     public function getPendingCompany(){
         $companyPending = Company::where('approved', 0)->count();
+        $activeCompany = Company::where('active', 1)->count();
         return response()->json([
+            'activeCompany' => $activeCompany,
             'total' => $companyPending,
             'result' => true
         ]);
+    }
+
+    public function approveCompany(Request $request){
+        DB::beginTransaction();
+        try{
+            $company = Company::find($request->company_id);
+            $company->approved = 1;
+            $company->save();
+
+            DB::commit();
+            return redirect()->back()->with([
+                'result' => true,
+                'success' => "Success Approve Company"
+            ]);
+        }
+        catch(\Exception $e){
+            DB::rollback();
+            log::debug($e->getMessage(). " on line ". $e->getLine() . " on File ". $e->getFile());
+            $message = "Error while approve company";
+            return redirect()->back()->with([
+                'result' => false,
+                'error' => $message
+            ]);
+        }
+    }
+
+    public function rejectCompany(Request $request){
+        DB::beginTransaction();
+        try{
+            $company = Company::find($request->company_id);
+            $company->approved = 2;
+            $company->save();
+
+            DB::commit();
+            return redirect()->back()->with([
+                'result' => true,
+                'success' => "Success Reject Company"
+            ]);
+        }
+        catch(\Exception $e){
+            DB::rollback();
+            log::debug($e->getMessage(). " on line ". $e->getLine() . " on File ". $e->getFile());
+            $message = "Error while reject company";
+            return redirect()->back()->with([
+                'result' => false,
+                'error' => $message
+            ]);
+        }
     }
 
 }

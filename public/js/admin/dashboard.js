@@ -46,14 +46,11 @@
                         data: 'company_id',
                         width: '6%',
                         orderable: false,
-                        // render: function (data, type, row) {
-                        //     var action_view = row.proposed_date[0];
-                        //     for(var i=1; i<row.proposed_date.length; i++)
-                        //     {
-                        //         action_view += "<BR>"+row.proposed_date[i];
-                        //     }
-                        //     return action_view;
-                        // }
+                        render: function (data, type, row) {
+                            var action_view = '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="'+data+'" data-name="'+row['company_name']+'"><i class="fa fa-thumbs-up" title="Approve"></i></button>'+
+                            '<button onclick="rejectModal(this)" class="btn btn-danger btn-xs margr5 reject" data-id="'+data+'" data-name="'+row['company_name']+'"><i class="fa fa-times" title="Reject"></i></button>';
+                            return action_view;
+                        }
                     }
                 ],
                 order: [[0, 'desc']]
@@ -107,18 +104,38 @@
                         data: 'company_id',
                         width: '6%',
                         orderable: false,
-                        // render: function (data, type, row) {
-                        //     var action_view = row.proposed_date[0];
-                        //     for(var i=1; i<row.proposed_date.length; i++)
-                        //     {
-                        //         action_view += "<BR>"+row.proposed_date[i];
-                        //     }
-                        //     return action_view;
-                        // }
+                        render: function (data, type, row) {
+                            var action_view = '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="'+data+'" data-name="'+row['company_name']+'"><i class="fa fa-thumbs-up" title="Approve"></i></button>'+
+                            '<button onclick="rejectModal(this)" class="btn btn-danger btn-xs margr5 void" data-id="'+data+'" data-name="'+row['company_name']+'"><i class="fa fa-times" title="Reject"></i></button>';
+                            return action_view;
+                        }
                     }
                 ],
                 order: [[0, 'desc']]
             });
         });
+
+        window.approveModal = function (element) {
+            var data = $(element).data('id');
+            var name = $(element).data('name');
+            $('#titleReport').html("Void Visit");
+            var html = "<input type='hidden' name='idAccess' value='locked' />";
+            html += "<input type='hidden' name= 'company_id' value='" + data + "' />";
+            html += "Approve Company <strong>" + name + "</strong> ?";
+            $('.modalsContent').html(html);
+            $('#m_company').modal('hide');
+            $('#approveModal').modal('show');
+        };
+        window.rejectModal = function (element) {
+            var data = $(element).data('id');
+            var name = $(element).data('name');
+            $('#titleReport').html("Unvoid Visit");
+            var html = "<input type='hidden' name='idAccess' value='locked' />";
+            html += "<input type='hidden' name= 'company_id' value='" + data + "' />";
+            html += "Reject Company <strong>" + name + "</strong> ?";
+            $('.modalsContent').html(html);
+            $('#m_company').modal('hide');
+            $('#rejectModal').modal('show');
+        };
     });
 })(jQuery);
