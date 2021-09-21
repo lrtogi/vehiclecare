@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Company\Company;
+use App\Models\Master\Company;
 use Log;
 use DB;
 
@@ -53,7 +53,11 @@ class AdminController extends Controller
         $model = new Company();
         $fields = $model->getTableColumns();
         
-        $company = Company::where('active', $active)->where('approved', $approved);
+        $company = Company::select();
+        if($active != 'all')
+            $company = $company->where('active', $active);
+        if($approved != 'all')
+            $company = $company->where('approved', $approved);
         // search data
         if ($keyword != null) {
             if (!empty($keyword)) {
@@ -127,6 +131,7 @@ class AdminController extends Controller
         try{
             $company = Company::find($request->company_id);
             $company->approved = 1;
+            $company->active = 1;
             $company->save();
 
             DB::commit();

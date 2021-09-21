@@ -30,5 +30,17 @@ Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function() {
 });
 
 Route::group(['namespace' => 'Master', 'middleware' => 'isAdmin'], function() {
+    //vehicle type
     Route::get('admin/vehicleType', 'VehicleController@index')->name('admin/vehicleType');
+    Route::get('admin/vehicleType/showForm/{id?}', 'VehicleController@showForm')->name('admin/vehicleType/showForm');
+    Route::post('admin/vehicleType/save', 'VehicleController@store')->name('admin/vehicleType/save');
+    Route::post('admin/vehicleType/delete', 'VehicleController@delete')->name('admin/vehicleType/delete');
+
+    //company
+    Route::get('admin/company', 'CompanyController@index')->name('admin/company');
+    Route::get('admin/company/showForm/{id?}', 'CompanyController@showForm')->name('admin/company/showForm');
+    Route::post('admin/company/save', 'CompanyController@store')->name('admin/company/save');
+    Route::post('admin/company/void', 'CompanyController@void')->name('admin/company/void');
+    Route::post('admin/company/unvoid', 'CompanyController@unvoid')->name('admin/company/unvoid');
+    Route::get('admin/company/getUser/{user_type}', 'CompanyController@getUser')->name('admin/company/getUser');
 });

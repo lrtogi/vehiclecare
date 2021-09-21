@@ -70,7 +70,7 @@ class LoginController extends Controller
                     //they sent their username instead 
                     auth()->attempt(array('username' => $input['email'], 'password' => $input['password']));
                 }
-                return redirect()->route('admin.home')->with('status',"Selamat anda telah berhasil login");
+                return redirect()->route('admin/home')->with('status',"Selamat anda telah berhasil login");
             }else{
                 if ($user->user_type == 2) {
                     if($company->active == 0 || empty($company)){
