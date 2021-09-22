@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Master\Company;
+use App\Models\User;
 use Log;
 use DB;
 
@@ -116,12 +117,14 @@ class AdminController extends Controller
         return json_encode($table);
     }
 
-    public function getPendingCompany(){
+    public function getDashboard(){
         $companyPending = Company::where('approved', 0)->count();
         $activeCompany = Company::where('active', 1)->count();
+        $totalUser = User::count();
         return response()->json([
             'activeCompany' => $activeCompany,
-            'total' => $companyPending,
+            'totalCompanyPending' => $companyPending,
+            'totalUser' => $totalUser,
             'result' => true
         ]);
     }

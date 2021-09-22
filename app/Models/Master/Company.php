@@ -25,6 +25,6 @@ class Company extends Model
     }
 
     public function user() {
-        return $this->belongsTo('App\User', 'username', 'user_record');
+        return $this->belongsTo('App\User', 'user_id', 'user_record');
     }
 }

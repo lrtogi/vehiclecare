@@ -24,7 +24,7 @@ Route::get('/home', ['uses' => 'HomeController@index'])->name('home');
 Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function() {
     Route::get('admin/home', 'AdminController@index')->name('admin/home');
     Route::get('admin/companyList/get/search/{active}/{approved}', 'AdminController@getSearch')->name('admin/companyList/get/search');
-    Route::get('admin/getPendingCompany', 'AdminController@getPendingCompany')->name('admin/getPendingCompany');
+    Route::get('admin/getDashboard', 'AdminController@getDashboard')->name('admin/getDashboard');
     Route::post('admin/approveCompany', 'AdminController@approveCompany')->name('admin/approveCompany');
     Route::post('admin/rejectCompany', 'AdminController@rejectCompany')->name('admin/rejectCompany');
 });

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use App\Models\Master\Company;
+use App\Models\Master\Worker;
+use App\Models\Master\Customer;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -58,6 +60,7 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
+            'full_name' => ['required', 'string'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'company_name' => ['required'],
@@ -84,6 +87,7 @@ class RegisterController extends Controller
         $company->no_telp = $request['no_telp_company'];
         $company->alamat_perusahaan = $request['alamat'];
         $company->active = 0;
+        $company->approved = 0;
         $company->created_at = Carbon::now();
         $company->created_user = $request['username'];
         $company->updated_at = Carbon::now();
@@ -95,22 +99,55 @@ class RegisterController extends Controller
         }
 
         $user = new User();
-        $user->id = Str::orderedUuid();
+        $uuidUser = Str::orderedUuid();
+        $user->id = $uuidUser;
         $user->username = $request['username'];
         $user->email = $request['email'];
         $user->password = Hash::make($request['password']);
         $user->user_type = 2;
         $user->company_id = $company->company_id;
-        $user->no_telp = $request['no_telp'];
         $user->locked = 0;
         $user->created_at = Carbon::now();
         $user->updated_at = Carbon::now();
         if(!$user->save()){
-            log::debug("errorr");
+            log::debug("error user add");
             DB::rollback();
             $error = "An Error occured while saving company data.";
             return redirect()->back()->with('error', $error);
         }
+
+        $worker = new Worker();
+        $worker->worker_id = Str::orderedUuid();
+        $worker->worker_name = $request['full_name'];
+        $worker->company_id = $company->company_id;
+        $worker->created_at = Carbon::now();
+        $worker->created_user = $request['username'];
+        $worker->updated_at = Carbon::now();
+        $worker->updated_user = $request['username'];
+        $worker->user_id = $uuidUser;
+        if(!$worker->save()){
+            log::debug('error worker add');
+            DB::rollback();
+            $error = "Error while saving data worker.";
+            return redirect()->back()->with('error', $error);
+        }
+
+        $customer = new Customer();
+        $customer->customer_id = Str::orderedUuid();
+        $customer->customer_name = $request['full_name'];
+        $customer->no_telp = $request['no_telp'];
+        $customer->created_at = Carbon::now();
+        $customer->created_user = $request['username'];
+        $customer->updated_at = Carbon::now();
+        $customer->updated_user = $request['username'];
+        $customer->user_id = $uuidUser;
+        if(!$customer->save()){
+            log::debug('error customer add');
+            DB::rollback();
+            $error = "Error while saving data customer.";
+            return redirect()->back()->with('error', $error);
+        }
+
         DB::commit();
         return $user;
     }
