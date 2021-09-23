@@ -30,6 +30,7 @@ class AdminController extends Controller
     {
         $companyPending = Company::where('approved', 0)->count();
         return view('admin.home')
+        ->with('pageTitle', 'Admin Home')
         ->with('companyPending', $companyPending);
     }
 

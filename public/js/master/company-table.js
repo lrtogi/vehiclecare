@@ -58,7 +58,7 @@ $(document).ready(function() {
                     if (data == 1) {
                         return "Active";
                     } else {
-                        return "Deactive";
+                        return "Not Active";
                     }
                 }
             },
@@ -151,7 +151,7 @@ $(document).ready(function() {
         var html = "<input type='hidden' name='idAccess' value='locked' />";
         html +=
             "<input type='hidden' name= 'company_id' value='" + data + "' />";
-        html += "Activate Company <strong>" + name + "</strong> ?";
+        html += "Deactivate Company <strong>" + name + "</strong> ?";
         $(".modalDelete").html(html);
         $("#voidModal").modal("show");
     };
@@ -162,7 +162,7 @@ $(document).ready(function() {
         var html = "<input type='hidden' name='idAccess' value='locked' />";
         html +=
             "<input type='hidden' name= 'company_id' value='" + data + "' />";
-        html += "Deactivate Company <strong>" + name + "</strong> ?";
+        html += "Activate Company <strong>" + name + "</strong> ?";
         $(".modalDelete").html(html);
         $("#unvoidModal").modal("show");
     };

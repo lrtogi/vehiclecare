@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <meta name="_token" content="{{ csrf_token() }}">
 
-    <title>@yield('title')</title>
+    <title>{{ $pageTitle }}</title>
 
     <!-- Custom fonts for this template-->
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
@@ -88,6 +88,8 @@
                             href="{{ route('admin/vehicleType') }}">Vehicle Type</a>
                         <a class="collapse-item {{ Route::is('admin/company') ? 'active' : '' }}"
                             href="{{ route('admin/company') }}">Company</a>
+                        <a class="collapse-item {{ Route::is('admin/user') ? 'active' : '' }}"
+                            href="{{ route('admin/user') }}">User</a>
                     </div>
                 </div>
             </li>
@@ -378,10 +380,19 @@
 
 </body>
 <script type="text/javascript">
-    $('.pointer').css('cursor', 'pointer');
+    $(document).ready(function() {
+        $('.pointer').css('cursor', 'pointer');
+        $(".is_numeric").keyup(function(e) {
+            if (/\D/g.test(this.value)) {
+                // Filter non-digits from input value.
+                this.value = this.value.replace(/\D/g, "");
+            }
+        });
+    });
 </script>
 <script src="{{ asset('js/vue.js') }}"></script>
 <script src="{{ asset('js/vuex.js') }}"></script>
+<script src="{{ asset('js/axios.min.js') }}"></script>
 @yield('script')
 
 </html>

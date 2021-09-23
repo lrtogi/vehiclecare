@@ -23,11 +23,13 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        return view('home')
+        ->with('pageTitle', 'Home');
     }
 
     public function adminHome()
     {
-        return view('admin.home');
+        return view('admin.home')
+        ->with('pageTitle', 'Admin Home');
     }
 }

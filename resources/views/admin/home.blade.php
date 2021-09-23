@@ -1,5 +1,4 @@
 @extends('admin.master')
-@section('title', 'Staff|Home')
 
 @section('content')
     @if (session('status'))

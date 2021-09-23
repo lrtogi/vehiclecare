@@ -1,7 +1,5 @@
 @extends('admin.master')
 
-@section('title', $pageTitle)
-
 @section('content')
 
     <div class="container-fluid">

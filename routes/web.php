@@ -19,8 +19,6 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', ['uses' => 'HomeController@index'])->name('home');
-
 Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function() {
     Route::get('admin/home', 'AdminController@index')->name('admin/home');
     Route::get('admin/companyList/get/search/{active}/{approved}', 'AdminController@getSearch')->name('admin/companyList/get/search');
@@ -43,4 +41,16 @@ Route::group(['namespace' => 'Master', 'middleware' => 'isAdmin'], function() {
     Route::post('admin/company/void', 'CompanyController@void')->name('admin/company/void');
     Route::post('admin/company/unvoid', 'CompanyController@unvoid')->name('admin/company/unvoid');
     Route::get('admin/company/getUser/{user_type}', 'CompanyController@getUser')->name('admin/company/getUser');
+
+    //user
+    Route::get('admin/user', 'UserController@index')->name('admin/user');
+    Route::get('admin/user/showForm/{id?}', 'UserController@showForm')->name('admin/user/showForm');
+    Route::post('admin/user/save', 'UserController@store')->name('admin/user/save');
+    Route::post('admin/user/delete', 'UserController@delete')->name('admin/user/delete');
+    Route::get('admin/user/getCompany', 'UserController@getCompany')->name('admin/user/getCompany');
+});
+
+Route::group(['middleware' => 'isCompany'], function(){
+
+    // Route::get('home', 'AdminController@index')->name('admin/home');
 });

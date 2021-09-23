@@ -1,5 +1,4 @@
 @extends('admin.master')
-@section('title', $pageTitle)
 
 @section('content')
 
