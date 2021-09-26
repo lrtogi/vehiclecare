@@ -26,10 +26,4 @@ class HomeController extends Controller
         return view('home')
         ->with('pageTitle', 'Home');
     }
-
-    public function adminHome()
-    {
-        return view('admin.home')
-        ->with('pageTitle', 'Admin Home');
-    }
 }

@@ -130,6 +130,7 @@ class CompanyController extends Controller
         $worker->worker_id = Str::orderedUuid();
         $worker->worker_name = $request->full_name;
         $worker->company_id = $company->company_id;
+        $worker->approved = 1;
         $worker->no_telp = $request->no_telp;
         $worker->created_at = Carbon::now();
         $worker->created_user = $request->username;

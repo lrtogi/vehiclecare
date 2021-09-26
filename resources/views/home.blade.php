@@ -38,8 +38,8 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-m font-weight-bold text-primary text-uppercase mb-1">Active Company</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeCompany"></div>
+                            <div class="text-m font-weight-bold text-primary text-uppercase mb-1">Monthly Earnings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="monthlyEarnings"></div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -53,8 +53,9 @@
                 <div class="card-body pointer" data-target="#m_company" data-toggle="modal" role="dialog">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-m font-weight-bold text-warning text-uppercase mb-1">Pending Approval</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="companyPending"></div>
+                            <div class="text-m font-weight-bold text-warning text-uppercase mb-1">Pending Approval Payment
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="paymentApproval"></div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-edit fa-2x text-gray-300"></i>
@@ -68,8 +69,8 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-m font-weight-bold text-success text-uppercase mb-1">Total Users</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUser"></div>
+                            <div class="text-m font-weight-bold text-success text-uppercase mb-1">Total Workers</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalWorker"></div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-user fa-2x text-gray-300"></i>
@@ -83,7 +84,7 @@
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel">List Pending Leave</h4>
+                    <h4 class="modal-title" id="myModalLabel">List Pending Payment</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -94,9 +95,9 @@
                             <thead class="thead-default">
                                 <tr role="row">
                                 <tr>
-                                    <th>Company Name</th>
-                                    <th>PIC Email</th>
-                                    <th>No Telp</th>
+                                    <th>Customer Name</th>
+                                    <th>Total Price</th>
+                                    <th>Payment Price</th>
                                     <th>Action</th>
                                 </tr>
                                 </tr>
@@ -117,11 +118,11 @@
         <div class="modal-dialog modal-mid">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="titleReport">Reject Company</h4>
+                    <h4 class="modal-title" id="titleReport">Reject Payment</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
                 </div>
-                <form action="{{ route('admin/rejectCompany') }}" method="post" class="action" id="form-so"
+                <form action="{{ route('payment/rejectPayment') }}" method="post" class="action" id="form-so"
                     enctype='multipart/form-data'>
                     {{ csrf_field() }}
                     <div class="modal-body" style="background-color:whitesmoke;">
@@ -142,11 +143,11 @@
         <div class="modal-dialog modal-mid">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="titleReport">Approve Company</h4>
+                    <h4 class="modal-title" id="titleReport">Approve Payment</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
                 </div>
-                <form action="{{ route('admin/approveCompany') }}" method="post" class="action" id="form-so"
+                <form action="{{ route('payment/approvePayment') }}" method="post" class="action" id="form-so"
                     enctype='multipart/form-data'>
                     {{ csrf_field() }}
                     <div class="modal-body" style="background-color:whitesmoke;">
@@ -168,17 +169,17 @@
 
 @section('script')
     <script type="text/javascript">
-        var companyList = "{{ url('admin/companyList/get/search') }}";
-        var dashboardUrl = "{{ url('admin/getDashboard') }}";
+        var paymentList = "{{ url('payment/get/search') }}";
+        var dashboardUrl = "{{ url('getDashboard') }}";
 
         function refreshPage() {
             $.ajax({
                 type: 'GET',
                 url: dashboardUrl,
                 success: function(data) {
-                    document.getElementById('companyPending').innerHTML = data.totalCompanyPending;
-                    document.getElementById('activeCompany').innerHTML = data.activeCompany;
-                    document.getElementById('totalUser').innerHTML = data.totalUser;
+                    document.getElementById('monthlyEarnings').innerHTML = data.monthlyEarnings;
+                    document.getElementById('paymentApproval').innerHTML = data.paymentApproval;
+                    document.getElementById('totalWorkers').innerHTML = data.totalWorkers;
                 }
             });
         }
@@ -186,6 +187,6 @@
             refreshPage();
         });
     </script>
-    <script type="text/javascript" src="{{ asset('js/admin/dashboard.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/dashboard.js') }}"></script>
 
 @endsection
