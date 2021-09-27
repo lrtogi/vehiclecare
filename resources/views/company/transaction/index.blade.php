@@ -37,7 +37,7 @@
                             Search
                         </button>
                         <a class="btn btn-primary m-0 font-weight-bold text-white"
-                            href="{{ route('package/showForm') }}">Add Transaction</a>
+                            href="{{ route('transaction/showForm') }}">Add Transaction</a>
                     </div>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                             </div>
                             <div class="col-sm-9">
                                 <span class="input-group datepicker-datelimit-init">
-                                    <input type="date" data-validation="[NOTEMPTY]"
+                                    <input type="text" data-validation="[NOTEMPTY]"
                                         data-validation-message="Date must not be empty" class="form-control"
                                         autocomplete="off" name="startdate" id="startdate" placeholder="Select Date"
                                         value="{{ date('Y-m-d') }}">
@@ -104,10 +104,10 @@
                             </div>
                             <div class="col-sm-9">
                                 <span class="input-group datepicker-datelimit-init">
-                                    <input type="date" data-validation="[NOTEMPTY]"
+                                    <input type="text" data-validation="[NOTEMPTY]"
                                         data-validation-message="Date must not be empty" class="form-control"
                                         autocomplete="off" name="enddate" id="enddate" placeholder="Select Date"
-                                        value="{{ date('Y-m-d') }}">
+                                        value="{{ date('d-m-Y') }}">
                                     <span class="input-group-addon">
                                         <i class="icmn-calendar"></i>
                                     </span>

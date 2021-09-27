@@ -90,6 +90,8 @@ class PackageController extends Controller
             $package->discount_percentage = (double)$request->discount_percentage;
             $package->discounted_price = (double)$package->price - ((double)$package->price * (double)$package->discount_percentage / 100);
             $package->active = $request->active;
+            $package->created_user = auth()->user()->username;
+            $package->update_user = auth()->user()->username;
             $package->save();
 
             DB::commit();
@@ -99,6 +101,24 @@ class PackageController extends Controller
             log::debug($e->getMessage() . " on line ". $e->getLine() . ' on file ' . $e->getFile());
             return redirect()->back()->with('error', 'Error while saving data.');
         }
+    }
+
+    public function getByVehicle(Request $request, $vehicle_id){
+        $company_id = auth()->user()->company_id;
+        $package = Package::where('company_id', $company_id)->where('vehicle_id', $vehicle_id)->get();
+        return response()->json([
+            'result' => true,
+            'data' => $package
+        ]);
+    }
+
+    public function getPrice(Request $request, $package_id){
+        $company_id = auth()->user()->company_id;
+        $package = Package::where('company_id', $company_id)->where('package_id', $package_id)->first();
+        return response()->json([
+            'result' =>true,
+            'data' => $package
+        ]);
     }
 
 }

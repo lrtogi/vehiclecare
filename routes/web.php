@@ -61,6 +61,8 @@ Route::group(['middleware' => 'isCompany'], function(){
     Route::post('package/save', 'Master\PackageController@store')->name('package/save');
     Route::post('package/void', 'Master\PackageController@void')->name('package/void');
     Route::post('package/unvoid', 'Master\PackageController@unvoid')->name('package/unvoid');
+    Route::get('package/getByVehicle/{vehicle_id}', 'Master\PackageController@getByVehicle')->name('package/getByVehicle');
+    Route::get('package/getPrice/{package_id}', 'Master\PackageController@getPrice')->name('package/getPrice');
 
     //worker
     Route::get('worker', 'Master\WorkerController@index')->name('worker');
@@ -87,4 +89,8 @@ Route::group(['middleware' => 'isCompany'], function(){
     Route::post('job/save', 'Transaction\TransactionController@store')->name('job/save');
     Route::get('job/get/search/{status}/{vehicle_id}/{startdate}/{enddate}', 'Transaction\JobController@getSearch')->name('job/get/search');
 
+});
+
+Route::get('simple-qr-code', function () {
+     return QrCode::size(200)->generate('W3Adda Laravel Tutorial');
 });

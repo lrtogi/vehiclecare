@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Master\Company;
 use App\Models\Master\Worker;
 use App\Models\Master\Customer;
+use App\Models\Transaction\Job;
 use App\Models\User;
 use Log;
 use DB;
@@ -15,7 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
-class Job extends Controller
+class JobController extends Controller
 {
     /**
      * Create a new controller instance.

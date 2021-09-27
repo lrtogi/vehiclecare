@@ -1,5 +1,6 @@
 (function($) {
     $(document).ready(function() {
+        $(".datepicker-datelimit-init").datepicker();
         $("#m_company").modal("show");
         var startdate = $("#startdate").val();
         var enddate = $("#enddate").val();
@@ -256,6 +257,11 @@
                     }
                 },
                 {
+                    data: "customer_id",
+                    name: "m_vehicle_customer.customer_id",
+                    visible: false
+                },
+                {
                     data: "transaction_id",
                     name: "transactions.transaction_id",
                     width: "6%",
@@ -263,22 +269,24 @@
                     render: function(data, type, row) {
                         var action_view = "";
                         if (row["transactions.status"] == 0) {
-                            action_view =
-                                action_view +
-                                '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="' +
-                                data +
-                                '" data-customer_name="' +
-                                row["m_customer.customer_name"] +
-                                '" data-date ="' +
-                                row["transactions.order_date"] +
-                                '" ><i class="fa fa-thumbs-up" title="Approve"></i></button>' +
-                                '<button onclick="rejectModal(this)" class="btn btn-danger btn-xs margr5 void" data-id="' +
-                                data +
-                                '" data-customer_name="' +
-                                row["m_customer.customer_name"] +
-                                '" data-date ="' +
-                                row["transactions.order_date"] +
-                                '" ><i class="fa fa-times" title="Reject"></i></button>';
+                            if (row["m_vehicle_customer.customer_id"] == null) {
+                                action_view =
+                                    action_view +
+                                    '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="' +
+                                    data +
+                                    '" data-customer_name="' +
+                                    row["m_customer.customer_name"] +
+                                    '" data-date ="' +
+                                    row["transactions.order_date"] +
+                                    '" ><i class="fa fa-thumbs-up" title="Approve"></i></button>' +
+                                    '<button onclick="rejectModal(this)" class="btn btn-danger btn-xs margr5 void" data-id="' +
+                                    data +
+                                    '" data-customer_name="' +
+                                    row["m_customer.customer_name"] +
+                                    '" data-date ="' +
+                                    row["transactions.order_date"] +
+                                    '" ><i class="fa fa-times" title="Reject"></i></button>';
+                            }
                         }
                         return action_view;
                     }
