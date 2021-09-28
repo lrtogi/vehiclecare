@@ -74,14 +74,16 @@ Route::group(['middleware' => 'isCompany'], function(){
     Route::get('payment', 'Transaction\PaymentController@index')->name('payment');
     Route::post('payment/rejectPayment', 'Transaction\PaymentController@rejectPayment')->name('payment/rejectPayment');
     Route::post('payment/approvePayment', 'Transaction\PaymentController@approvePayment')->name('payment/approvePayment');
-    Route::get('payment/get/search/{approved}', 'Transaction\PaymentController@getSearch')->name('payment/get/search');
-    Route::get('payment/get/search/{approved}/{startdate}/{enddate}', 'Transaction\PaymentController@getSearch')->name('payment/get/search');
+    Route::get('payment/get/search/{approved}/{created_by_customer}/{startdate}/{enddate}', 'Transaction\PaymentController@getSearch')->name('payment/get/search');
 
     //Transaction
     Route::get('transaction', 'Transaction\TransactionController@index')->name('transaction');
     Route::get('transaction/showForm/{id?}', 'Transaction\TransactionController@showForm')->name('transaction/showForm');
     Route::post('transaction/save', 'Transaction\TransactionController@store')->name('transaction/save');
     Route::get('transaction/get/search/{status}/{vehicle_id}/{startdate}/{enddate}', 'Transaction\TransactionController@getSearch')->name('transaction/get/search');
+    Route::get('transaction/detail/{id}', 'Transaction\TransactionController@detail')->name('transaction/detail');
+    Route::get('transaction/print/{id}', 'Transaction\TransactionController@print')->name('transaction/print');
+    Route::post('transaction/delete', 'Transaction\TransactionController@delete')->name('transaction/delete');
     
     //Jobs
     Route::get('job', 'Transaction\JobController@index')->name('job');
@@ -89,8 +91,4 @@ Route::group(['middleware' => 'isCompany'], function(){
     Route::post('job/save', 'Transaction\TransactionController@store')->name('job/save');
     Route::get('job/get/search/{status}/{vehicle_id}/{startdate}/{enddate}', 'Transaction\JobController@getSearch')->name('job/get/search');
 
-});
-
-Route::get('simple-qr-code', function () {
-     return QrCode::size(200)->generate('W3Adda Laravel Tutorial');
 });

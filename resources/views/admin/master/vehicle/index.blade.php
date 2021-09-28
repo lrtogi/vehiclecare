@@ -123,7 +123,7 @@
                     $('#titleReport').html("Delete Vehicle Type");
                     var html = "<input type='hidden' name='idAccess' value='locked' />";
                     html += "<input type='hidden' name= 'vehicle_id' value='" + data + "' />";
-                    html += "Hapus Vehicle Type <strong>'" + dataName + "'</strong> ?";
+                    html += "Delete Vehicle Type <strong>'" + dataName + "'</strong> ?";
                     $('.modalDelete').html(html);
                     $('#deleteModal').modal('show');
                 };

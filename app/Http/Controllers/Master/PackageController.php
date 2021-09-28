@@ -43,7 +43,7 @@ class PackageController extends Controller
         ->with('package', $package);
     }
 
-    public function showForm(Request $request, $package_id){
+    public function showForm(Request $request, $package_id = null){
         if($package_id == null){
             $model = new Package();
         }
@@ -91,7 +91,7 @@ class PackageController extends Controller
             $package->discounted_price = (double)$package->price - ((double)$package->price * (double)$package->discount_percentage / 100);
             $package->active = $request->active;
             $package->created_user = auth()->user()->username;
-            $package->update_user = auth()->user()->username;
+            $package->updated_user = auth()->user()->username;
             $package->save();
 
             DB::commit();
@@ -99,13 +99,13 @@ class PackageController extends Controller
         }
         catch(\Exception $e){
             log::debug($e->getMessage() . " on line ". $e->getLine() . ' on file ' . $e->getFile());
-            return redirect()->back()->with('error', 'Error while saving data.');
+            return redirect()->back()->with('error', 'Error while saving data.')->withInput();
         }
     }
 
     public function getByVehicle(Request $request, $vehicle_id){
         $company_id = auth()->user()->company_id;
-        $package = Package::where('company_id', $company_id)->where('vehicle_id', $vehicle_id)->get();
+        $package = Package::where('company_id', $company_id)->where('vehicle_id', $vehicle_id)->where('active',1)->get();
         return response()->json([
             'result' => true,
             'data' => $package

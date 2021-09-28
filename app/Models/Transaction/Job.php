@@ -14,7 +14,7 @@ class Job extends Model
     public $incrementing = false;
 
     protected $table = 'jobs';
-    protected $primaryKey = 'job_id';
+    protected $primaryKey = 'transaction_id';
 
     public function getTableColumns() {
         return $this->getConnection()->getSchemaBuilder()->getColumnListing($this->getTable());

@@ -29,7 +29,7 @@
             <div class="card-header py-3">
                 <div class="row">
                     <div class="col-md-6">
-                        <h6 class="m-0 font-weight-bold text-primary">Vehicle Datas</h6>
+                        <h6 class="m-0 font-weight-bold text-primary">{{ $pageTitle }}</h6>
                     </div>
                     <div class="col-md-6 text-right">
                         <button data-target="#m_search" data-toggle="modal" role="dialog"
@@ -58,6 +58,20 @@
                             </tr>
                             </tr>
                         </thead>
+                        <tfoot class="thead-default">
+                            <tr role="row">
+                            <tr>
+                                <th>Transaction Date</th>
+                                <th>Customer Name</th>
+                                <th>Order Date</th>
+                                <th>Package</th>
+                                <th>Vehicle Type</th>
+                                <th>Total Price</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                            </tr>
+                        </tfoot>
                         <tbody>
 
                         </tbody>
@@ -85,10 +99,10 @@
                             </div>
                             <div class="col-sm-9">
                                 <span class="input-group datepicker-datelimit-init">
-                                    <input type="text" data-validation="[NOTEMPTY]"
+                                    <input type="date" data-validation="[NOTEMPTY]"
                                         data-validation-message="Date must not be empty" class="form-control"
                                         autocomplete="off" name="startdate" id="startdate" placeholder="Select Date"
-                                        value="{{ date('Y-m-d') }}">
+                                        value="{{ date('Y-m-01') }}">
                                     <span class="input-group-addon">
                                         <i class="icmn-calendar"></i>
                                     </span>
@@ -104,10 +118,10 @@
                             </div>
                             <div class="col-sm-9">
                                 <span class="input-group datepicker-datelimit-init">
-                                    <input type="text" data-validation="[NOTEMPTY]"
+                                    <input type="date" data-validation="[NOTEMPTY]"
                                         data-validation-message="Date must not be empty" class="form-control"
                                         autocomplete="off" name="enddate" id="enddate" placeholder="Select Date"
-                                        value="{{ date('d-m-Y') }}">
+                                        value="{{ date('Y-m-t') }}">
                                     <span class="input-group-addon">
                                         <i class="icmn-calendar"></i>
                                     </span>
@@ -157,12 +171,37 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade modal-size-small" id="deleteModal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="titleReport"></h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                    </div>
+                    <form action="{{ route('transaction/delete') }}" method="post" id="form-delete" target="_self">
+                        {{ csrf_field() }}
+                        <div class="modal-body modalDelete">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-pure mr-auto" data-dismiss="modal">Close</button>
+                            <button type="submit" id="btn-save"
+                                class="btn btn-danger btn-report-transaction">Delete</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     @endsection
 
     @section('script')
 
         <script type="text/javascript">
             var searchUrl = "{{ url('transaction/get/search') }}";
+            var formUrl = " {{ url('transaction/showForm') }}";
+            var detailUrl = "{{ url('transaction/detail') }}";
             var app = new Vue({
                 el: '#m_search',
                 delimiters: ['${', '}'],
