@@ -210,4 +210,14 @@ class CompanyController extends Controller
             'data' => $users
         ]);
     }
+
+    public function getCompanyList(Request $request){
+        $company = Company::where('active', 1)->get();
+        $result = [
+            'result' => true,
+            'message' => 'Success getting data',
+            'data' => $company
+        ];
+        return response($result);
+    }
 }

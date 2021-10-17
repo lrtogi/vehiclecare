@@ -49,4 +49,8 @@ class User extends Authenticatable
         'id' => 'string',
         'company_id' => 'string'
     ];
+    
+    public function customers() {
+        return $this->hasMany('App\Models\Master\Customer');
+    }
 }
