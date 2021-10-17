@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::group(['middleware'=>['auth:sanctum']], function() {
     Route::post('getProfile', 'Master\CustomerController@getProfile');
     Route::post('saveProfile', 'Master\CustomerController@saveProfile');
-    Route::post('getVehicle', 'Master\CustomerController@getVehicle');
+    Route::post('vehicle/getAll', 'Master\CustomerController@getVehicle');
+    Route::post('vehicle/save', 'Master\CustomerController@saveVehicle');
     Route::post('getCompanyList', 'Master\CompanyController@getCompanyList');
 });

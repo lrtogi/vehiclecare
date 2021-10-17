@@ -79,4 +79,40 @@ class CustomerController extends Controller
         ];
         return response()->json($result);
     }
+
+    public function saveVehicle(Request $request){
+        DB::beginTransaction();
+        try{
+            $customer = Customer::find($request->customer_id);
+            $customer_vehicle_id = $request->input('customer_vehicle_id') != null ? $request->customer_vehicle_id : '';
+            if($customer_vehicle_id != null){
+                $customerVehicle = CustomerVehicle::find($customer_vehicle_id);
+            }
+            else{
+                $customerVehicle = new CustomerVehicle();
+                $customerVehicle->customer_vehicle_id = Str::orderedUuid();
+                $customerVehicle->customer_id = $customer->customer_id;
+                $customerVehicle->customer_name= $customer->customer_name;
+                $customerVehicle->created_user = auth()->user()->username;
+            }
+            $customerVehicle->vehicle_name = $request->vehicle_name;
+            $customerVehicle->police_number = $request->police_number;
+            $customerVehicle->updated_user = auth()->user()->username;
+            $customerVehicle->save();
+
+            $result = [
+                'result' => true,
+                'message' => 'Success saving vehicle datas',
+                'model' => $customerVehicle
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
+            return response()->json([
+                'result' => false,
+                'message' => "Error while saving data"
+            ]);
+        }
+    }
 }
