@@ -33,6 +33,9 @@ Route::group(['middleware'=>['auth:sanctum']], function() {
     Route::post('getProfile', 'Master\CustomerController@getProfile');
     Route::post('saveProfile', 'Master\CustomerController@saveProfile');
     Route::post('vehicle/getAll', 'Master\CustomerController@getVehicle');
+    Route::post('vehicle/getVehicleDetail', 'Master\CustomerController@getVehicleDetail');
     Route::post('vehicle/save', 'Master\CustomerController@saveVehicle');
+    Route::post('vehicle/delete', 'Master\CustomerController@deleteVehicle');
+    Route::post('vehicle/getType', 'Master\CustomerController@getType');
     Route::post('getCompanyList', 'Master\CompanyController@getCompanyList');
 });

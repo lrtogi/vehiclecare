@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Master\Customer;
 use App\Models\Master\CustomerVehicle;
 use App\Models\Master\Worker;
+use App\Models\Master\Vehicle;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -71,12 +72,23 @@ class CustomerController extends Controller
     }
 
     public function getVehicle(Request $request){
-        $customerVehicle = CustomerVehicle::where('customer_id', $request->customer_id)->get();
+        $customerVehicle = CustomerVehicle::join('m_vehicle','m_vehicle.vehicle_id', 'm_customer_vehicle.vehicle_id')->where('customer_id', $request->customer_id)->get();
         $result = [
             'result' => true,
             'message' => 'Success get data',
             'data' => $customerVehicle
         ];
+        return response()->json($result);
+    }
+
+    public function getVehicleDetail(Request $request){
+        $customerVehicle = CustomerVehicle::where('customer_vehicle_id', $request->customer_vehicle_id)->first();
+        $result = [
+            'result' => true,
+            'message' => 'Success get data',
+            'data' => $customerVehicle
+        ];
+        log::debug($customerVehicle);
         return response()->json($result);
     }
 
@@ -95,6 +107,7 @@ class CustomerController extends Controller
                 $customerVehicle->customer_name= $customer->customer_name;
                 $customerVehicle->created_user = auth()->user()->username;
             }
+            $customerVehicle->vehicle_id = $request->vehicle_id;
             $customerVehicle->vehicle_name = $request->vehicle_name;
             $customerVehicle->police_number = $request->police_number;
             $customerVehicle->updated_user = auth()->user()->username;
@@ -105,14 +118,50 @@ class CustomerController extends Controller
                 'message' => 'Success saving vehicle datas',
                 'model' => $customerVehicle
             ];
+            DB::commit();
             return response()->json($result);
         }
         catch(\Exception $e){
+            DB::rollback();
             log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
             return response()->json([
                 'result' => false,
                 'message' => "Error while saving data"
             ]);
         }
+    }
+
+    public function deleteVehicle(Request $request){
+        DB::beginTransaction();
+        try{
+            $customerVehicle = CustomerVehicle::where('customer_vehicle_id', $request->customer_vehicle_id)->delete();
+            $result = [
+                'result' => true,
+                'message' => 'Success Delete vehicle data'
+            ];
+            DB::commit();
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            DB::rollback();
+            $result = [
+                'result' => false,
+                'message' => 'Error while deleting data'
+            ];
+            return response()->json($result);
+        }
+        
+    }
+
+    public function getType(Request $request){
+        log::debug('masuk kok');
+        $vehicle = Vehicle::get();
+
+        $result = [
+            'result' => true,
+            'message' => 'Success retrieve data',
+            'data' => $vehicle
+        ];
+        return response()->json($result);
     }
 }
