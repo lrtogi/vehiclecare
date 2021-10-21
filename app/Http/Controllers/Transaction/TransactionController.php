@@ -161,11 +161,11 @@ class TransactionController extends Controller
             $job->save();
         }
         else{
-            $transaction = Transaction::findOrFail($request->transaction_id);
+            $transaction = Transaction::findOrFail($transaction_id);
             $customerVehicle = CustomerVehicle::findOrFail($transaction->customer_vehicle_id);
-            $job = Job::where('transaction_id', $transaction->transaction_id);
-            $payment = Payment::findOrFail('transaction_id', $transaction->transaction_id);
-            if($transaction->customer_id != null || $model->company_id != auth()->user()->company_id || $job->status != 0){
+            $job = Job::where('transaction_id', $transaction->transaction_id)->first();
+            $payment = Payment::where('transaction_id',$transaction->transaction_id)->first();
+            if($transaction->customer_id != null || $transaction->company_id != auth()->user()->company_id || $job->status != 0){
                 return redirect()->back()->with('error', 'You are not allowed to edit this data.');
             }
             $customerVehicle->customer_name = $request->customer_name;
@@ -325,4 +325,48 @@ class TransactionController extends Controller
         return json_encode($table);
     }
 
+    public function packageSearchMobile(Request $request){
+        try{
+            $vehicle = CustomerVehicle::find($request->customer_vehicle_id);
+            $package = Package::where('company_id', $request->company_id)->where('vehicle_id', $vehicle->vehicle_id)->where('active', 1)->get();
+
+            $result = [
+                'result' => true,
+                'message' => 'Success get package data',
+                'data' => $package
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            $message = "Failed to retrieve data";
+            $result = [
+                'result' => false,
+                'message' => $message
+            ];
+            return response()->json($result);
+        }
+        
+    }
+
+    public function getDetail(Request $request){
+        try{
+            $package = Package::find($request->package_id);
+
+            $result = [
+                'result' => true,
+                'message' => 'Success get data',
+                'data' => $package
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            log::debug($e->getMessage());
+            $message = "Failed to retrieve data";
+            $result = [
+                'result' => false,
+                'message' => $message
+            ];
+            return response()->json($result);
+        }
+    }
 }

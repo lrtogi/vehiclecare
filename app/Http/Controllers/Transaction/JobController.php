@@ -138,4 +138,16 @@ class JobController extends Controller
         return json_encode($table);
     }
 
+    public function search(Request $request){
+        $date = Carbon::parse($request->date)->format('Y-m-d');
+        $model = new Job();
+        $job = $model->searchJobWithVehicle($date, $request->company_id, $request->vehicle_id)->get();
+
+        return response()->json([
+            'result' => true,
+            'message' => 'Success search job list',
+            'data' => $job
+        ]);
+    }
+
 }

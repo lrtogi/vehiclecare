@@ -88,7 +88,6 @@ class CustomerController extends Controller
             'message' => 'Success get data',
             'data' => $customerVehicle
         ];
-        log::debug($customerVehicle);
         return response()->json($result);
     }
 
@@ -111,6 +110,22 @@ class CustomerController extends Controller
             $customerVehicle->vehicle_name = $request->vehicle_name;
             $customerVehicle->police_number = $request->police_number;
             $customerVehicle->updated_user = auth()->user()->username;
+            if($request->file('vehicle_photo_url') != null)
+            {
+                // $picData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $request->image));
+                // file_put_contents($_SERVER['DOCUMENT_ROOT']."$servicePath"."$path", $picData);
+                $file = $request->file('vehicle_photo_url');
+                $name = "$customerVehicle->customer_vehicle_id.png";
+                $customerVehicle->vehicle_photo_url = "vehicle_photo/$name";
+                $path = $_SERVER['DOCUMENT_ROOT']."/vehiclecare/public/images/vehicle_photo/";
+                $file->move($path, $name);
+            }
+            else{
+                $path = $_SERVER['DOCUMENT_ROOT']."/vehiclecare/public/images/vehicle_photo/";
+                if(file_exists($path.$customerVehicle->customer_vehicle_id.".png"))
+                    unlink($path.$customerVehicle->customer_vehicle_id.".png");
+                $customerVehicle->vehicle_photo_url = null;
+            }
             $customerVehicle->save();
 
             $result = [
@@ -134,7 +149,11 @@ class CustomerController extends Controller
     public function deleteVehicle(Request $request){
         DB::beginTransaction();
         try{
-            $customerVehicle = CustomerVehicle::where('customer_vehicle_id', $request->customer_vehicle_id)->delete();
+            $path = $_SERVER['DOCUMENT_ROOT']."/vehiclecare/public/images/vehicle_photo/";
+            $customerVehicle = CustomerVehicle::where('customer_vehicle_id', $request->customer_vehicle_id);
+            if(file_exists($path.$customerVehicle->first()->customer_vehicle_id.".png"))
+                    unlink($path.$customerVehicle->first()->customer_vehicle_id.".png");
+            $customerVehicle->delete();
             $result = [
                 'result' => true,
                 'message' => 'Success Delete vehicle data'
@@ -154,7 +173,6 @@ class CustomerController extends Controller
     }
 
     public function getType(Request $request){
-        log::debug('masuk kok');
         $vehicle = Vehicle::get();
 
         $result = [

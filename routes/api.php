@@ -30,12 +30,20 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Route::get('test', ['uses' => [App\Http\Controllers\CompanyController::class, 'index'], 'as' => '/test'])->middleware();
 Route::group(['middleware'=>['auth:sanctum']], function() {
+    Route::post('getCompanyList', 'Master\CompanyController@getCompanyList');
     Route::post('getProfile', 'Master\CustomerController@getProfile');
     Route::post('saveProfile', 'Master\CustomerController@saveProfile');
+
+    //vehicle
     Route::post('vehicle/getAll', 'Master\CustomerController@getVehicle');
     Route::post('vehicle/getVehicleDetail', 'Master\CustomerController@getVehicleDetail');
     Route::post('vehicle/save', 'Master\CustomerController@saveVehicle');
     Route::post('vehicle/delete', 'Master\CustomerController@deleteVehicle');
     Route::post('vehicle/getType', 'Master\CustomerController@getType');
-    Route::post('getCompanyList', 'Master\CompanyController@getCompanyList');
+
+    Route::post('job/search', 'Transaction\JobController@search');
+
+    //package
+    Route::post('package/search', 'Transaction\TransactionController@packageSearchMobile');
+    Route::post('package/getDetail', 'Transaction\TransactionController@getDetail');
 });

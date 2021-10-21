@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use DB;
+use Log;
 class Job extends Model
 {
     const CREATED_AT = 'created_at';
@@ -15,6 +16,18 @@ class Job extends Model
 
     protected $table = 'jobs';
     protected $primaryKey = 'transaction_id';
+
+    public function searchJobWithVehicle($date, $company_id, $vehicle_id){
+        $job = Job::select(['m_customer_vehicle.customer_name', 'transactions.order_date', 'm_package.package_name'])
+                ->join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')
+                ->join('m_customer_vehicle', 'transactions.customer_vehicle_id', 'm_customer_vehicle.customer_vehicle_id')
+                ->join('m_package', 'm_package.package_id', 'transactions.package_id')
+                ->where('transactions.company_id', $company_id)
+                ->where('transactions.order_date', $date)
+                ->where('m_customer_vehicle.vehicle_id', $vehicle_id)
+                ->where('jobs.status', '<>', 2);
+        return $job;
+    }
 
     public function getTableColumns() {
         return $this->getConnection()->getSchemaBuilder()->getColumnListing($this->getTable());
