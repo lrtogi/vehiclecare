@@ -246,6 +246,7 @@ class PaymentController extends Controller
     public function savePaymentMobile(Request $request){
         DB::beginTransaction();
         try{
+            $transaction = Transaction::find($request->transaction_id);
             $payment_id = $request->payment_id != '' ? $request->payment_id : null;
             log::debug($payment_id);
             if($payment_id != null){
@@ -258,6 +259,8 @@ class PaymentController extends Controller
                 $payment->payment_date= Carbon::now()->format('Y-m-d H:i:s');
                 $payment->created_user = auth()->user()->username;
                 $payment->approved = 0;
+                $transaction->status = 1;
+                $transaction->save();
             }
             $payment->total_payment = $request->total_payment;
             $payment->user_id = auth()->user()->id;
