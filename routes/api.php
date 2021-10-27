@@ -14,6 +14,10 @@ use App\Models\User;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+Route::get('test', function(){
+    return 'test';
+});
+
 Route::post('register', ['uses'=>'API\APIController@register']);
 Route::post('login', ['uses'=>'API\APIController@login']);
 
@@ -45,5 +49,17 @@ Route::group(['middleware'=>['auth:sanctum']], function() {
 
     //package
     Route::post('package/search', 'Transaction\TransactionController@packageSearchMobile');
-    Route::post('package/getDetail', 'Transaction\TransactionController@getDetail');
+    Route::post('package/getDetail', 'Transaction\TransactionController@getDetailPackage');
+
+    //transaction
+    Route::post('transactionMobile/getListData', 'Transaction\TransactionController@getListData');
+    Route::post('transactionMobile/getData', 'Transaction\TransactionController@getData');
+    Route::post('transactionMobile/save', 'Transaction\TransactionController@saveMobileForm');
+    Route::post('transactionMobile/delete', 'Transaction\TransactionController@deleteMobileTransaction');
+
+    //payment
+    Route::post('paymentMobile/getDetailTransaction', 'Transaction\PaymentController@getDetailTransaction');
+    Route::post('paymentMobile/getList', 'Transaction\PaymentController@getList');
+    Route::post('paymentMobile/save', 'Transaction\PaymentController@savePaymentMobile');
+    Route::post('paymentMobile/getDetailPayment', 'Transaction\PaymentController@getDetailPayment');
 });

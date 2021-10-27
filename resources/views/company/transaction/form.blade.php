@@ -98,7 +98,7 @@
                                 class="text-danger">*</span></label>
                         <div class="col-md-6">
                             <input type="date" name="order_date" id="order_date" class="form-control"
-                                value="{{ date('Y-m-d') }}">
+                                value="{{ isset($model->order_date) ? $model->order_date : date('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="form-group row">
