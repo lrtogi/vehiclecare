@@ -165,7 +165,7 @@ class TransactionController extends Controller
             $customerVehicle = CustomerVehicle::findOrFail($transaction->customer_vehicle_id);
             $job = Job::where('transaction_id', $transaction->transaction_id)->first();
             $payment = Payment::where('transaction_id',$transaction->transaction_id)->first();
-            if($transaction->customer_id != null || $transaction->company_id != auth()->user()->company_id || $job->status != 0){
+            if($transaction->company_id != auth()->user()->company_id || $job->status != 0){
                 return redirect()->back()->with('error', 'You are not allowed to edit this data.');
             }
             $customerVehicle->customer_name = $request->customer_name;
@@ -348,7 +348,7 @@ class TransactionController extends Controller
         
     }
 
-    public function getDetail(Request $request){
+    public function getDetailPackage(Request $request){
         try{
             $package = Package::find($request->package_id);
 
@@ -365,6 +365,154 @@ class TransactionController extends Controller
             $result = [
                 'result' => false,
                 'message' => $message
+            ];
+            return response()->json($result);
+        }
+    }
+    
+    public function getListData(Request $request){
+        try{
+            $transaction = Transaction::join('m_package', 'm_package.package_id', 'transactions.package_id')->join('m_company', 'm_company.company_id', 'm_package.company_id')->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->where('m_customer_vehicle.customer_id', $request->customer_id)->select(['transactions.transaction_id', 'm_customer_vehicle.vehicle_name', 'total_price', 'package_name', DB::raw("DATE_FORMAT(order_date, '%Y-%m-%d') as order_date"), 'transactions.company_id', 'm_company.company_name'])->get();
+            
+            $result = [
+                'result' => true,
+                'message' => 'Success get Transaction List',
+                'data' => $transaction
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            log::debug($e->getMessage() . ' on line '. $e->getLine() . ' on file ' . $e->getFile());
+            $result = [
+                'result' => false,
+                'message' => 'Error getting the data result'
+            ];
+            return response()->json($result);
+        }
+    }
+
+    public function getData(Request $request){
+        try{
+            $transaction = Transaction::where('transaction_id', $request->transaction_id)->select(['transaction_id', DB::raw("DATE_FORMAT(order_date, '%d-%m-%Y') as order_date"), 'customer_vehicle_id', 'package_id', 'total_price', 'company_id'])->first();
+            $job = Job::find($transaction->transaction_id);
+            if(!empty($job) && $transaction->status != 0 && $transaction->status != 1)
+                $editable = false;
+            else
+                $editable = true;
+            $result = [
+                'result' => true,
+                'message' => 'Success get data',
+                'data' => $transaction,
+                'editable' => $editable
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            log::debug($e->getMessage() . ' on line '. $e->getLine() . ' on file ' . $e->getFile());
+            $result = [
+                'result' => false,
+                'message' => 'Error getting the data result'
+            ];
+            return response()->json($result);
+        }
+    }
+
+    public function saveMobileForm(Request $request){
+        DB::beginTransaction();
+        try{
+            $company_id = $request->company_id;
+            $transaction_id = $request->input('transaction_id') != '' ? $request->transaction_id : null;
+            $package = Package::where('package_id', $request->package_id)->where('company_id', $company_id)->first();
+            $customerVehicle = CustomerVehicle::find($request->customer_vehicle_id);
+            if($package == null){
+                $result = [
+                    'result' => false,
+                    'message' => 'Package Not Found' 
+                ];
+                return response()->json($result);
+            }
+            if($transaction_id == null){
+                $transaction = new Transaction();
+                $transaction->transaction_id = Str::orderedUuid();
+                $transaction->transaction_date = Carbon::now()->format('Y-m-d H:i:s');
+                $transaction->order_date = Carbon::parse($request->order_date)->format('Y-m-d');
+                $transaction->customer_vehicle_id = $customerVehicle->customer_vehicle_id;
+                $transaction->company_id = $company_id;
+                $transaction->package_id = $package->package_id;
+                $transaction->qty = 1;
+                $transaction->total_price = $transaction->qty * $package->discounted_price;
+                $transaction->status = 0;
+                $transaction->created_user = auth()->user()->username;
+                $transaction->updated_user = auth()->user()->username;
+                $transaction->save();
+            }
+            else{
+                $transaction = Transaction::findOrFail($transaction_id);
+                $job = Job::where('transaction_id', $transaction->transaction_id)->first();
+                $payment = Payment::where('transaction_id',$transaction->transaction_id)->first();
+                if($transaction->company_id != $request->company_id || !empty($job)){
+                    $result = [
+                        'result' => false,
+                        'message' => "You are cannot edit this data"
+                    ];
+                    return response()->json($result);
+                }
+
+                $transaction->order_date = Carbon::parse($request->order_date)->format('Y-m-d');
+                $transaction->customer_vehicle_id = $customerVehicle->customer_vehicle_id;
+                $transaction->package_id = $package->package_id;
+                $transaction->total_price = $transaction->qty * $package->discounted_price;
+                $transaction->updated_user = auth()->user()->username;
+                $transaction->save();
+            }
+
+            DB::commit();
+            $success = "Success saving transaction.";
+            $result = [
+                'result' => true,
+                'message' => $success
+            ];
+            return response()->json($result);
+
+        }
+        catch(\Exception $e){
+            DB::rollback();
+            log::debug($e->getMessage() . ' on line '. $e->getLine() . ' on file '. $e->getFile());
+            $result = [
+                'result' => false,
+                'message' => 'An error occured while saving transaction'
+            ];
+            return response()->json($result);
+        }
+    }
+
+    public function deleteMobileTransaction(Request $request){
+        DB::beginTransaction();
+        try{
+            $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id',$request->transaction_id)->select(['transactions.company_id','transactions.status as transaction_status', 'jobs.status as job_status', 'transactions.customer_vehicle_id'])->first();
+
+            if($transaction == null || $transaction->transaction_status != 0){
+                $result = [
+                    'result' => true,
+                    'message' => 'You cannot delete this data'
+                ];
+                return response()->json($result);
+            }
+            $transaction = Transaction::where('transaction_id', $request->transaction_id)->delete();
+
+            DB::commit();
+            $result = [
+                'result' => true,
+                'message' => 'Successfully Deleted Data'
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            DB::rollback();
+            log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
+            $result = [
+                'result' => false,
+                'message' => 'An Error occured while deleting data'
             ];
             return response()->json($result);
         }
