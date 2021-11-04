@@ -201,8 +201,7 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-pure mr-auto" data-dismiss="modal">Close</button>
-                            <button type="submit" id="btn-save"
-                                class="btn btn-primary btn-report-transaction">Approve</button>
+                            <button type="submit" id="btn-save" class="btn btn-primary">Approve</button>
                         </div>
                     </form>
                 </div>
@@ -212,8 +211,9 @@
     @endsection
 
     @section('script')
-
+        <script src="{{ asset('js/fileSaver.js') }}"></script>
         <script type="text/javascript">
+            var image_url = "{{ asset('images') }}";
             var searchUrl = "{{ url('payment/get/search') }}";
             var detailUrl = "{{ url('payment/detail') }}";
             var app = new Vue({
@@ -226,6 +226,10 @@
                     status: 'all',
                 }
             });
+
+            function getFileName(str) {
+                return str.substring(str.lastIndexOf('/') + 1)
+            }
         </script>
         <script type="text/javascript" src="{{ asset('js/payment/payment-table.js') }}"></script>
     @endsection

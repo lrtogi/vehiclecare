@@ -41,6 +41,44 @@ class CustomerController extends Controller
         return response()->json($result);
     }
 
+    public function changePassword(Request $request){
+        DB::beginTransaction();
+        try{
+            $user = User::find(auth()->user()->id);
+            $currenPassword = $request->current_password;
+            $newPassword = $request->new_password;
+
+            $hashCheck = Hash::check($currenPassword, $user->password);
+
+            if(!$hashCheck){
+                $result = [
+                    'result' => false,
+                    'message' => 'Current Password is incorrect'
+                ];
+                return response()->json($result);
+            }
+
+            $hashPassword = Hash::make($newPassword);
+            $user->password = $hashPassword;
+            $user->save();
+            DB::commit();
+            $result = [
+                'result' => true,
+                'message' => 'Success Change Password'
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            DB::rollback();
+            log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
+            $result = [
+                'result' => false,
+                'message' => 'Error Occured while change password'
+            ];
+            return response()->json($result);
+        }
+    }
+
     public function saveProfile(Request $request){
         DB::beginTransaction();
         try{

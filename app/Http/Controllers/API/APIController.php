@@ -17,6 +17,7 @@ class APIController extends Controller
 {
     public function register(Request $request)
     {
+        log::debug('masuk');
         try{
             DB::beginTransaction();
             $validator = Validator::make($request->all(), [

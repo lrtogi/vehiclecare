@@ -105,6 +105,8 @@
                             href="{{ route('package') }}">Package</a>
                         <a class="collapse-item {{ Route::is('worker') ? 'active' : '' }}"
                             href="{{ route('worker') }}">Worker</a>
+                        <a class="collapse-item {{ Route::is('paymentMethod') ? 'active' : '' }}"
+                            href="{{ route('paymentMethod') }}">Payment Method</a>
                     </div>
                 </div>
             </li>

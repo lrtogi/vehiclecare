@@ -10,10 +10,12 @@ use App\Models\Master\Worker;
 use App\Models\Master\Customer;
 use App\Models\Master\Vehicle;
 use App\Models\Master\CustomerVehicle;
+use App\Models\Master\PaymentMethod;
 use App\Models\Transaction\Transaction;
 use App\Models\Transaction\Job;
 use App\Models\Transaction\Payment;
 use App\Models\Master\Package;
+use App\Models\Master\DefaultApp;
 use App\Models\User;
 use Log;
 use DB;
@@ -44,18 +46,19 @@ class TransactionController extends Controller
     {
         $vehicleType = Vehicle::all();
         return view('company.transaction.index')
-        ->with('pageTitle', "Transaction List")
-        ->with('vehicleType', $vehicleType);
+            ->with('pageTitle', "Transaction List")
+            ->with('vehicleType', $vehicleType);
     }
 
-    public function delete(Request $request){
+    public function delete(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $company_id = auth()->user()->company_id;
-            $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id',$request->transaction_id)->select(['transactions.company_id','transactions.status as transaction_status', 'jobs.status as job_status', 'transactions.customer_vehicle_id'])->first();
+            $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->where('transactions.transaction_id', $request->transaction_id)->select(['transactions.company_id', 'transactions.status as transaction_status', 'jobs.status as job_status', 'transactions.customer_vehicle_id', 'm_customer_vehicle.customer_id'])->first();
 
-            if($transaction == null || $transaction->company_id != $company_id || $transaction->job_status != 0 || $transaction->transaction_status == 1 || $transaction->transaction_status == 0){
-                return redirect()->back()->with('error', 'You cannot delete data that has been processed.');
+            if ($transaction == null || $transaction->company_id != $company_id || $transaction->job_status != 0 || $transaction->transaction_status == 1 || $transaction->transaction_status == 0 || $transaction->customer_id != null) {
+                return redirect()->back()->with('error', 'You cannot delete this data.');
             }
             $jobs = Job::where('transaction_id', $request->transaction_id)->delete();
             $payment = Payment::where('transaction_id', $request->transaction_id)->delete();
@@ -65,52 +68,54 @@ class TransactionController extends Controller
 
             DB::commit();
             return redirect()->back()->with('success', 'Success deleting data.');
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
             log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
             return redirect()->back()->with('error', 'Error while deleting data.');
         }
     }
 
-    public function showForm(Request $request, $transaction_id = null){
-        if($transaction_id != null){
+    public function showForm(Request $request, $transaction_id = null)
+    {
+        if ($transaction_id != null) {
             $model = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')
-            ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
-            ->where('transactions.transaction_id',$transaction_id)
-            ->where('jobs.status', 0)->first();
-            if($model == null){
+                ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
+                ->where('transactions.transaction_id', $transaction_id)
+                ->where('jobs.status', 0)->first();
+            if ($model == null) {
                 return redirect()->back()->with('error', 'You cannot edit data that has been processed.');
             }
-            if($model->company_id != auth()->user()->company_id){
+            if ($model->company_id != auth()->user()->company_id) {
                 return redirect()->back()->with('error', 'You are not allowed to edit this data.');
             }
-            if($model->customer_id != null){
+            if ($model->customer_id != null) {
                 return redirect()->back()->with('error', 'This transaction was created by another user');
             }
-        }
-        else{
+        } else {
             $model = new Transaction();
         }
         $vehicleType = Vehicle::all();
-        $package = Package::where('company_id', auth()->user()->company_id);
+        $package = Package::where('company_id', auth()->user()->company_id)->get();
+        $paymentMethod = PaymentMethod::where('company_id', auth()->user()->company_id)->get();
 
         return view('company.transaction.form')
-        ->with('pageTitle', 'Transaction Form')
-        ->with('model', $model)
-        ->with('vehicleType', $vehicleType)
-        ->with('package', $package);
+            ->with('pageTitle', 'Transaction Form')
+            ->with('model', $model)
+            ->with('vehicleType', $vehicleType)
+            ->with('package', $package);
     }
 
-    public function store(Request $request){
+    public function store(Request $request)
+    {
         DB::beginTransaction();
         $company_id = auth()->user()->company_id;
+        $defaultPaymentMethod = DefaultApp::getByID('Default Payment Method', $company_id);
         $transaction_id = $request->input('transactionID') != null ? $request->transactionID : null;
         $package = Package::where('package_id', $request->package_type)->where('company_id', $company_id)->first();
-        if($package == null){
+        if ($package == null) {
             return redirect()->back()->with('error', 'Package Type not found!')->withInput();
         }
-        if($transaction_id == null){
+        if ($transaction_id == null) {
             $customerVehicle = new CustomerVehicle();
             $customerVehicle->customer_vehicle_id = Str::orderedUuid();
             $customerVehicle->customer_name = $request->customer_name;
@@ -141,6 +146,7 @@ class TransactionController extends Controller
             $payment->payment_date = Carbon::now()->format('Y-m-d H:i:s');
             $payment->transaction_id = $transaction->transaction_id;
             $payment->total_payment = $transaction->total_price;
+            $payment->payment_method_id = $defaultPaymentMethod;
             $payment->approved = 1;
             $payment->created_user = auth()->user()->username;
             $payment->updated_user = auth()->user()->username;
@@ -148,24 +154,22 @@ class TransactionController extends Controller
 
             $job = new Job();
             $job->transaction_id = $transaction->transaction_id;
-            $countIndex = Job::join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')->where('transactions.order_date', $transaction->order_date)->orderBy('jobs.index','desc')->select(['jobs.index'])->first();
-            if($countIndex == null){
+            $countIndex = Job::join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')->where('transactions.order_date', $transaction->order_date)->orderBy('jobs.index', 'desc')->select(['jobs.index'])->first();
+            if ($countIndex == null) {
                 $job->index = 1;
-            }
-            else{
+            } else {
                 $job->index = $countIndex->index + 1;
             }
             $job->status = 0;
             $job->created_user = auth()->user()->username;
             $job->updated_user = auth()->user()->username;
             $job->save();
-        }
-        else{
+        } else {
             $transaction = Transaction::findOrFail($transaction_id);
             $customerVehicle = CustomerVehicle::findOrFail($transaction->customer_vehicle_id);
             $job = Job::where('transaction_id', $transaction->transaction_id)->first();
-            $payment = Payment::where('transaction_id',$transaction->transaction_id)->first();
-            if($transaction->company_id != auth()->user()->company_id || $job->status != 0){
+            $payment = Payment::where('transaction_id', $transaction->transaction_id)->first();
+            if ($transaction->company_id != auth()->user()->company_id || $job->status != 0) {
                 return redirect()->back()->with('error', 'You are not allowed to edit this data.');
             }
             $customerVehicle->customer_name = $request->customer_name;
@@ -184,6 +188,7 @@ class TransactionController extends Controller
             $transaction->save();
 
             $payment->payment_date = Carbon::now()->format('Y-m-d H:i:s');
+            $payment->payment_method_id = $defaultPaymentMethod;
             $payment->total_payment = $transaction->total_price;
             $payment->updated_user = auth()->user()->username;
             $payment->save();
@@ -191,27 +196,29 @@ class TransactionController extends Controller
 
         DB::commit();
         $success = "Success saving transaction.";
-        return redirect()->route('transaction/detail',$transaction->transaction_id)->with('success', $success);
+        return redirect()->route('transaction/detail', $transaction->transaction_id)->with('success', $success);
     }
 
-    public function detail($id){
+    public function detail($id)
+    {
         $company_id = auth()->user()->company_id;
-        $model = Transaction::join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->join('m_package','m_package.package_id', 'transactions.package_id')->leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id', $id)->select(['transactions.order_date', 'transactions.total_price', DB::raw("IF(transactions.status=0,'Pending Payment',IF(transactions.status=1,'Pending Approval',IF(transactions.status=2,'Approved',IF(transactions.status=3,'Declined','Error')))) as status"), 'm_customer_vehicle.customer_name', 'm_customer_vehicle.police_number', 'm_customer_vehicle.vehicle_name', 'm_package.package_name', 'jobs.index', 'transactions.company_id', 'transactions.transaction_id'])->first();
+        $model = Transaction::join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->join('m_package', 'm_package.package_id', 'transactions.package_id')->leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id', $id)->select(['transactions.order_date', 'transactions.total_price', DB::raw("IF(transactions.status=0,'Pending Payment',IF(transactions.status=1,'Pending Approval',IF(transactions.status=2,'Approved',IF(transactions.status=3,'Declined','Error')))) as status"), 'm_customer_vehicle.customer_name', 'm_customer_vehicle.police_number', 'm_customer_vehicle.vehicle_name', 'm_package.package_name', 'jobs.index', 'transactions.company_id', 'transactions.transaction_id'])->first();
 
-        if($model->company_id != $company_id || empty($model)){
+        if ($model->company_id != $company_id || empty($model)) {
             return redirect()->back()->with('error', 'Unable to retrieve data');
         }
 
         return view('company.transaction.detail')
-        ->with('pageTitle', 'Transaction Detail')
-        ->with('model', $model);
+            ->with('pageTitle', 'Transaction Detail')
+            ->with('model', $model);
     }
 
-    public function print($id){
+    public function print($id)
+    {
         $company_id = auth()->user()->company_id;
-        $model = Transaction::join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->join('m_package','m_package.package_id', 'transactions.package_id')->leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id', $id)->select(['transactions.order_date', 'transactions.total_price', DB::raw("IF(transactions.status=0,'Pending Payment',IF(transactions.status=1,'Pending Approval',IF(transactions.status=2,'Approved',IF(transactions.status=3,'Declined','Error')))) as status"), 'm_customer_vehicle.customer_name', 'm_customer_vehicle.police_number', 'm_customer_vehicle.vehicle_name', 'm_package.package_name', 'jobs.index', 'transactions.company_id', 'transactions.transaction_id'])->first();
+        $model = Transaction::join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->join('m_package', 'm_package.package_id', 'transactions.package_id')->leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id', $id)->select(['transactions.order_date', 'transactions.total_price', DB::raw("IF(transactions.status=0,'Pending Payment',IF(transactions.status=1,'Pending Approval',IF(transactions.status=2,'Approved',IF(transactions.status=3,'Declined','Error')))) as status"), 'm_customer_vehicle.customer_name', 'm_customer_vehicle.police_number', 'm_customer_vehicle.vehicle_name', 'm_package.package_name', 'jobs.index', 'transactions.company_id', 'transactions.transaction_id'])->first();
 
-        if($model->company_id != $company_id || empty($model)){
+        if ($model->company_id != $company_id || empty($model)) {
             return redirect()->back()->with('error', 'Unable to retrieve data');
         }
 
@@ -232,7 +239,8 @@ class TransactionController extends Controller
         return $pdf->stream('print-transaction');
     }
 
-    public function getSearch(Request $request, $status, $vehicle_id, $startdate, $enddate){
+    public function getSearch(Request $request, $status, $vehicle_id, $startdate, $enddate)
+    {
         $startdate = Carbon::parse($startdate)->format('Y-m-d');
         $enddate = Carbon::parse($enddate)->format('Y-m-d');
         $offset = $request->start;
@@ -257,11 +265,11 @@ class TransactionController extends Controller
         $fields = $model->getTableColumns();
         $fieldsVehicle = $modelVehicle->getTableColumns();
         $company_id = auth()->user()->company_id;
-        $transaction = Transaction::leftjoin('m_customer_vehicle','m_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->leftjoin('m_vehicle','m_vehicle.vehicle_id', 'm_customer_vehicle.vehicle_id')->join('m_package', 'm_package.package_id', 'transactions.package_id')->where('m_package.company_id', $company_id)->where('transactions.company_id', $company_id)->select(['transactions.*', 'm_vehicle.vehicle_type', 'm_customer_vehicle.customer_name', 'm_package.package_name', 'm_customer_vehicle.customer_id']);
+        $transaction = Transaction::leftjoin('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->leftjoin('m_vehicle', 'm_vehicle.vehicle_id', 'm_customer_vehicle.vehicle_id')->join('m_package', 'm_package.package_id', 'transactions.package_id')->where('m_package.company_id', $company_id)->where('transactions.company_id', $company_id)->select(['transactions.*', 'm_vehicle.vehicle_type', 'm_customer_vehicle.customer_name', 'm_package.package_name', 'm_customer_vehicle.customer_id']);
         $transaction = $transaction->whereBetween('transactions.order_date', [$startdate, $enddate]);
-        if($status != 'all')
+        if ($status != 'all')
             $transaction = $transaction->where('transactions.status', $status);
-        if($vehicle_id != 'all')
+        if ($vehicle_id != 'all')
             $transaction = $transaction->where('m_vehicle.vehicle_id', $vehicle_id);
 
         // search data
@@ -269,10 +277,10 @@ class TransactionController extends Controller
             if (!empty($keyword)) {
                 $transaction->where(function ($query) use ($keyword, $fields, $fieldsVehicle) {
                     foreach ($fields as $column) {
-                        $query->orWhere('transactions.'.$column, 'LIKE', "%$keyword%");
+                        $query->orWhere('transactions.' . $column, 'LIKE', "%$keyword%");
                     }
                     foreach ($fieldsVehicle as $column) {
-                        $query->orWhere('m_vehicle.'.$column, 'LIKE', "%$keyword%");
+                        $query->orWhere('m_vehicle.' . $column, 'LIKE', "%$keyword%");
                     }
                     $query->orWhere('m_package.package_name', 'LIKE', "%$keyword%");
                     $query->orWhere('m_customer_vehicle.customer_name', 'LIKE', "%$keyword%");
@@ -325,8 +333,9 @@ class TransactionController extends Controller
         return json_encode($table);
     }
 
-    public function packageSearchMobile(Request $request){
-        try{
+    public function packageSearchMobile(Request $request)
+    {
+        try {
             $vehicle = CustomerVehicle::find($request->customer_vehicle_id);
             $package = Package::where('company_id', $request->company_id)->where('vehicle_id', $vehicle->vehicle_id)->where('active', 1)->get();
 
@@ -336,8 +345,7 @@ class TransactionController extends Controller
                 'data' => $package
             ];
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             $message = "Failed to retrieve data";
             $result = [
                 'result' => false,
@@ -345,11 +353,11 @@ class TransactionController extends Controller
             ];
             return response()->json($result);
         }
-        
     }
 
-    public function getDetailPackage(Request $request){
-        try{
+    public function getDetailPackage(Request $request)
+    {
+        try {
             $package = Package::find($request->package_id);
 
             $result = [
@@ -358,8 +366,7 @@ class TransactionController extends Controller
                 'data' => $package
             ];
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             log::debug($e->getMessage());
             $message = "Failed to retrieve data";
             $result = [
@@ -369,20 +376,20 @@ class TransactionController extends Controller
             return response()->json($result);
         }
     }
-    
-    public function getListData(Request $request){
-        try{
-            $transaction = Transaction::join('m_package', 'm_package.package_id', 'transactions.package_id')->join('m_company', 'm_company.company_id', 'm_package.company_id')->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->where('m_customer_vehicle.customer_id', $request->customer_id)->select(['transactions.transaction_id', 'm_customer_vehicle.vehicle_name', 'total_price', 'package_name', DB::raw("DATE_FORMAT(order_date, '%Y-%m-%d') as order_date"), 'transactions.company_id', 'm_company.company_name'])->get();
-            
+
+    public function getListData(Request $request)
+    {
+        try {
+            $transaction = Transaction::join('m_package', 'm_package.package_id', 'transactions.package_id')->join('m_company', 'm_company.company_id', 'm_package.company_id')->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->where('m_customer_vehicle.customer_id', $request->customer_id)->select(['transactions.transaction_id', 'm_customer_vehicle.vehicle_name', 'total_price', 'package_name', DB::raw("DATE_FORMAT(order_date, '%Y-%m-%d') as order_date"), 'transactions.company_id', 'm_company.company_name', 'transactions.status'])->get();
+
             $result = [
                 'result' => true,
                 'message' => 'Success get Transaction List',
                 'data' => $transaction
             ];
             return response()->json($result);
-        }
-        catch(\Exception $e){
-            log::debug($e->getMessage() . ' on line '. $e->getLine() . ' on file ' . $e->getFile());
+        } catch (\Exception $e) {
+            log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on file ' . $e->getFile());
             $result = [
                 'result' => false,
                 'message' => 'Error getting the data result'
@@ -391,24 +398,34 @@ class TransactionController extends Controller
         }
     }
 
-    public function getData(Request $request){
-        try{
-            $transaction = Transaction::where('transaction_id', $request->transaction_id)->select(['transaction_id', DB::raw("DATE_FORMAT(order_date, '%d-%m-%Y') as order_date"), 'customer_vehicle_id', 'package_id', 'total_price', 'company_id'])->first();
+    public function getData(Request $request)
+    {
+        try {
+            $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')
+                ->where('transactions.transaction_id', $request->transaction_id)
+                ->select(['transactions.transaction_id', DB::raw("DATE_FORMAT(transactions.order_date, '%d-%m-%Y') as order_date"), 'customer_vehicle_id', 'package_id', 'total_price', 'company_id', 'transactions.status as status', 'jobs.status as job_status'])->first();
             $job = Job::find($transaction->transaction_id);
-            if(!empty($job) && $transaction->status != 0 && $transaction->status != 1)
+            if (!empty($job) && $transaction->status != 0 && $transaction->status != 1 && $transaction->status != 4)
                 $editable = false;
             else
                 $editable = true;
+
+            if ($transaction->status == 2) {
+                $showQR = true;
+            } else {
+                $showQR = false;
+            }
+
             $result = [
                 'result' => true,
                 'message' => 'Success get data',
                 'data' => $transaction,
-                'editable' => $editable
+                'editable' => $editable,
+                'showQR' => $showQR
             ];
             return response()->json($result);
-        }
-        catch(\Exception $e){
-            log::debug($e->getMessage() . ' on line '. $e->getLine() . ' on file ' . $e->getFile());
+        } catch (\Exception $e) {
+            log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on file ' . $e->getFile());
             $result = [
                 'result' => false,
                 'message' => 'Error getting the data result'
@@ -417,21 +434,22 @@ class TransactionController extends Controller
         }
     }
 
-    public function saveMobileForm(Request $request){
+    public function saveMobileForm(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $company_id = $request->company_id;
             $transaction_id = $request->input('transaction_id') != '' ? $request->transaction_id : null;
             $package = Package::where('package_id', $request->package_id)->where('company_id', $company_id)->first();
             $customerVehicle = CustomerVehicle::find($request->customer_vehicle_id);
-            if($package == null){
+            if ($package == null) {
                 $result = [
                     'result' => false,
-                    'message' => 'Package Not Found' 
+                    'message' => 'Package Not Found'
                 ];
                 return response()->json($result);
             }
-            if($transaction_id == null){
+            if ($transaction_id == null) {
                 $transaction = new Transaction();
                 $transaction->transaction_id = Str::orderedUuid();
                 $transaction->transaction_date = Carbon::now()->format('Y-m-d H:i:s');
@@ -445,12 +463,11 @@ class TransactionController extends Controller
                 $transaction->created_user = auth()->user()->username;
                 $transaction->updated_user = auth()->user()->username;
                 $transaction->save();
-            }
-            else{
+            } else {
                 $transaction = Transaction::findOrFail($transaction_id);
                 $job = Job::where('transaction_id', $transaction->transaction_id)->first();
-                $payment = Payment::where('transaction_id',$transaction->transaction_id)->first();
-                if($transaction->company_id != $request->company_id || !empty($job)){
+                $payment = Payment::where('transaction_id', $transaction->transaction_id)->first();
+                if ($transaction->company_id != $request->company_id || !empty($job)) {
                     $result = [
                         'result' => false,
                         'message' => "You are cannot edit this data"
@@ -473,11 +490,9 @@ class TransactionController extends Controller
                 'message' => $success
             ];
             return response()->json($result);
-
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
-            log::debug($e->getMessage() . ' on line '. $e->getLine() . ' on file '. $e->getFile());
+            log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on file ' . $e->getFile());
             $result = [
                 'result' => false,
                 'message' => 'An error occured while saving transaction'
@@ -486,12 +501,13 @@ class TransactionController extends Controller
         }
     }
 
-    public function deleteMobileTransaction(Request $request){
+    public function deleteMobileTransaction(Request $request)
+    {
         DB::beginTransaction();
-        try{
-            $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id',$request->transaction_id)->select(['transactions.company_id','transactions.status as transaction_status', 'jobs.status as job_status', 'transactions.customer_vehicle_id'])->first();
+        try {
+            $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->where('transactions.transaction_id', $request->transaction_id)->select(['transactions.company_id', 'transactions.status as transaction_status', 'jobs.status as job_status', 'transactions.customer_vehicle_id'])->first();
 
-            if($transaction == null || $transaction->transaction_status != 0){
+            if ($transaction == null || $transaction->transaction_status != 0) {
                 $result = [
                     'result' => true,
                     'message' => 'You cannot delete this data'
@@ -506,8 +522,7 @@ class TransactionController extends Controller
                 'message' => 'Successfully Deleted Data'
             ];
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
             log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
             $result = [

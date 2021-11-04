@@ -19,7 +19,7 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function() {
+Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function () {
     Route::get('admin/home', 'AdminController@index')->name('admin/home');
     Route::get('admin/companyList/get/search/{active}/{approved}', 'AdminController@getSearch')->name('admin/companyList/get/search');
     Route::get('admin/getDashboard', 'AdminController@getDashboard')->name('admin/getDashboard');
@@ -27,7 +27,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function() {
     Route::post('admin/rejectCompany', 'AdminController@rejectCompany')->name('admin/rejectCompany');
 });
 
-Route::group(['namespace' => 'Master', 'middleware' => 'isAdmin'], function() {
+Route::group(['namespace' => 'Master', 'middleware' => 'isAdmin'], function () {
     //vehicle type
     Route::get('admin/vehicleType', 'VehicleController@index')->name('admin/vehicleType');
     Route::get('admin/vehicleType/showForm/{id?}', 'VehicleController@showForm')->name('admin/vehicleType/showForm');
@@ -50,10 +50,17 @@ Route::group(['namespace' => 'Master', 'middleware' => 'isAdmin'], function() {
     Route::get('admin/user/getCompany', 'UserController@getCompany')->name('admin/user/getCompany');
 });
 
-Route::group(['middleware' => 'isCompany'], function(){
+Route::group(['middleware' => 'isCompany'], function () {
 
     Route::get('home', 'HomeController@index')->name('home');
     Route::get('getDashboard', 'HomeController@getDashboard')->name('getDashboard');
+
+    //Payment Method
+    Route::get('paymentMethod', 'Master\PaymentMethodController@index')->name('paymentMethod');
+    Route::get('paymentMethod/showForm/{id?}', 'Master\PaymentMethodController@showForm')->name('paymentMethod/showForm');
+    Route::post('paymentMethod/save', 'Master\PaymentMethodController@store')->name('paymentMethod/save');
+    Route::post('paymentMethod/void', 'Master\PaymentMethodController@void')->name('paymentMethod/void');
+    Route::post('paymentMethod/unvoid', 'Master\PaymentMethodController@unvoid')->name('paymentMethod/unvoid');
 
     //Package
     Route::get('package', 'Master\PackageController@index')->name('package');
@@ -69,6 +76,8 @@ Route::group(['middleware' => 'isCompany'], function(){
     Route::get('worker/showForm/{id?}', 'Master\WorkerController@showForm')->name('worker/showForm');
     Route::post('worker/save', 'Master\WorkerController@store')->name('worker/save');
     Route::post('worker/delete', 'Master\WorkerController@void')->name('worker/delete');
+    Route::post('worker/reject', 'Master\WorkerController@reject')->name('worker/reject');
+    Route::post('worker/approve', 'Master\WorkerController@approve')->name('worker/approve');
 
     //Payment
     Route::get('payment', 'Transaction\PaymentController@index')->name('payment');
@@ -84,11 +93,10 @@ Route::group(['middleware' => 'isCompany'], function(){
     Route::get('transaction/detail/{id}', 'Transaction\TransactionController@detail')->name('transaction/detail');
     Route::get('transaction/print/{id}', 'Transaction\TransactionController@print')->name('transaction/print');
     Route::post('transaction/delete', 'Transaction\TransactionController@delete')->name('transaction/delete');
-    
+
     //Jobs
     Route::get('job', 'Transaction\JobController@index')->name('job');
     Route::get('job/showForm/{id?}', 'Transaction\TransactionController@showForm')->name('job/showForm');
     Route::post('job/save', 'Transaction\TransactionController@store')->name('job/save');
     Route::get('job/get/search/{status}/{vehicle_id}/{startdate}/{enddate}', 'Transaction\JobController@getSearch')->name('job/get/search');
-
 });

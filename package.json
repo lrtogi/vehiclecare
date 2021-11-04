@@ -25,6 +25,7 @@
         "vue-template-compiler": "^2.6.12"
     },
     "dependencies": {
+        "file-saver": "^2.0.5",
         "mdbootstrap": "^4.20.0"
     }
 }

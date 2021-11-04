@@ -50,7 +50,7 @@
         </div>
         <div class="col-md-4">
             <div class="card border-left-warning shadow h-100 py-2">
-                <div class="card-body pointer" data-target="#m_company" data-toggle="modal" role="dialog">
+                <div class="card-body pointer" data-target="#m_payment" data-toggle="modal" role="dialog">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-m font-weight-bold text-warning text-uppercase mb-1">Pending Approval Payment
@@ -70,7 +70,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-m font-weight-bold text-success text-uppercase mb-1">Total Workers</div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalWorker"></div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalWorkers"></div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-user fa-2x text-gray-300"></i>
@@ -80,7 +80,55 @@
             </div>
         </div>
     </div>
-    <div class="modal fade modal-size-large" id="m_company" tabindex="-1" role="dialog">
+    <hr>
+    <div class="container-fluid">
+        @if (count($vehicleType) > 1)
+            <div class="row">
+                @foreach ($vehicleType as $vt)
+                    <div class="col-md-6">
+                        <div class="card-header py-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ $vt->vehicle_type }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table txt-sm" role="grid"
+                                    id="data-table-achievement-{{ $vt->vehicle_id }}">
+                                    <thead class="thead-default">
+                                        <tr role="row">
+                                        <tr>
+                                            <th>Customer Name</th>
+                                            <th>Vehicle Name</th>
+                                            <th>Package</th>
+                                            <th>Status</th>
+                                            <th>Workers</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot class="thead-default">
+                                        <tr role="row">
+                                        <tr>
+                                            <th>Customer Name</th>
+                                            <th>Vehicle Name</th>
+                                            <th>Package</th>
+                                            <th>Status</th>
+                                            <th>Workers</th>
+                                        </tr>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+    <div class="modal fade modal-size-large" id="m_payment" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -96,6 +144,8 @@
                                 <tr role="row">
                                 <tr>
                                     <th>Customer Name</th>
+                                    <th>Payment Date</th>
+                                    <th>Package Name</th>
                                     <th>Total Price</th>
                                     <th>Payment Price</th>
                                     <th>Action</th>
@@ -122,7 +172,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
                 </div>
-                <form action="{{ route('payment/rejectPayment') }}" method="post" class="action" id="form-so"
+                <form action="{{ route('payment/rejectPayment') }}" method="post" class="action" id="form-reject"
                     enctype='multipart/form-data'>
                     {{ csrf_field() }}
                     <div class="modal-body" style="background-color:whitesmoke;">
@@ -133,7 +183,7 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-pure btn-sm mr-auto" data-dismiss="modal">Close</button>
-                        <button type="submit" id="btn-insert-excel" class="btn btn-sm btn-success">Save</button>
+                        <button type="submit" id="btn-reject" class="btn btn-sm btn-danger">Reject</button>
                     </div>
                 </form>
             </div>
@@ -147,8 +197,8 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                             aria-hidden="true">&times;</span></button>
                 </div>
-                <form action="{{ route('payment/approvePayment') }}" method="post" class="action" id="form-so"
-                    enctype='multipart/form-data'>
+                <form action="{{ route('payment/approvePayment') }}" method="post" class="action"
+                    id="form-approve" enctype='multipart/form-data'>
                     {{ csrf_field() }}
                     <div class="modal-body" style="background-color:whitesmoke;">
                         <div class="modal-body modalsContent">
@@ -158,9 +208,29 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-pure btn-sm mr-auto" data-dismiss="modal">Close</button>
-                        <button type="submit" id="btn-insert-excel" class="btn btn-sm btn-success">Save</button>
+                        <button type="submit" id="btn-approve" class="btn btn-sm btn-success">Approve</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade modal-size-small" id="showDetailModal" role="dialog">
+        <div class="modal-dialog modal-mid">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="titleReport">Detail Payment</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body" style="background-color:whitesmoke;">
+                    <div class="modal-body modalsContent">
+
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-pure btn-sm mr-auto" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -168,9 +238,13 @@
 @endsection
 
 @section('script')
+    <script src="{{ asset('js/fileSaver.js') }}"></script>
     <script type="text/javascript">
+        var image_url = "{{ asset('images') }}";
         var paymentList = "{{ url('payment/get/search') }}";
         var dashboardUrl = "{{ url('getDashboard') }}";
+        var jobUrl = "{{ url('job/get/search') }}";
+        var vehicleType = {!! json_encode($vehicleType->toArray()) !!};
 
         function refreshPage() {
             $.ajax({
@@ -186,6 +260,10 @@
         $(document).ready(function() {
             refreshPage();
         });
+
+        function getFileName(str) {
+            return str.substring(str.lastIndexOf('/') + 1)
+        }
     </script>
     <script type="text/javascript" src="{{ asset('js/dashboard.js') }}"></script>
 

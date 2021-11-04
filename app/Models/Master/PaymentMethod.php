@@ -6,17 +6,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use DB;
-class Package extends Model
+class PaymentMethod extends Model
 {
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
     public $incrementing = false;
 
-    protected $table = 'm_package';
-    protected $primaryKey = 'package_id';
+    protected $table = 'payment_method';
+    protected $primaryKey = 'payment_method_id';
 
-    protected $guarded = ['package_id', 'package_name', 'company_id', 'vehicle_id', 'price', 'discounted_percentage', 'discounted_price', 'active'];
+    protected $guarded = ['payment_method_id', 'method', 'value', 'company_id', 'on_behalf_of', 'void'];
 
     public function getTableColumns() {
         return $this->getConnection()->getSchemaBuilder()->getColumnListing($this->getTable());

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use DB;
+use Log;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -130,6 +131,7 @@ class CompanyController extends Controller
         $worker->worker_id = Str::orderedUuid();
         $worker->worker_name = $request->full_name;
         $worker->company_id = $company->company_id;
+        $worker->active = 1;
         $worker->approved = 1;
         $worker->no_telp = $request->no_telp;
         $worker->created_at = Carbon::now();
@@ -219,5 +221,124 @@ class CompanyController extends Controller
             'data' => $company
         ];
         return response($result);
+    }
+
+    public function companySearch(Request $request) {
+        $model = new Company();
+        $fields = $model->getTableColumns();
+        $company = Company::select('*')
+        ->where('active', 1);
+
+        // search data
+        if ($request->has('search')) {
+            $keyword = $request->input('search');
+            if (!empty($keyword)) {
+                $company->where(function ($query) use ($keyword, $fields) {
+                    foreach ($fields as $column) {
+                        $query->orWhere($column, 'LIKE', "%$keyword%");
+                    }
+                });
+            }
+        }
+        $company = $company->get();
+        $result= [
+            'result' => true,
+            'data' => $company
+        ];
+        return response()
+                        ->json($result);
+    }
+
+    public function workerRegister(Request $request){
+        try{
+            $customer = User::join('m_customer', 'm_customer.user_id', 'users.id')->where('users.id', auth()->user()->id)->select('m_customer.*')->first();
+            $worker = Worker::where('user_id', auth()->user()->id)->first();
+            if($worker != null){
+                if($worker->active == 1)
+                    $message = "You are a worker in a company";
+                else if($worker->approved == 1)
+                    $message = 'You have become a worker in a company';
+                else if($worker->approved == 0)
+                    $message = 'You are registering with a company';
+                $result = [
+                    'result' => false,
+                    'message' => $message
+                ];
+                return response()->json($result);
+            }
+
+            $worker = new Worker();
+            $worker->worker_id = Str::uuid();
+            $worker->worker_name = $customer->customer_name;
+            $worker->company_id = $request->company_id;
+            $worker->alamat = $customer->alamat;
+            $worker->no_telp = $customer->no_telp;
+            $worker->approved = 0;
+            $worker->active = 0;
+            $worker->user_id = auth()->user()->id;
+            $worker->created_user = auth()->user()->username;
+            $worker->updated_user = auth()->user()->username;
+            $worker->save();
+
+            $result = [
+                'result' => true,
+                'message' => 'Success Register to a Company'
+            ];
+            return response()->json($result);
+        }
+        catch(\Exception $e){
+            log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on file ' . $e->getFile());
+            $result = [
+                'result' => true,
+                'message' => 'Error while register to company'
+            ];
+            return response()->json($result);
+        }
+    }
+
+    public function getWorkerData(Request $request){
+        $worker = Worker::where('user_id', auth()->user()->id)->first();
+        
+        if($worker != null){
+            $company = Company::find($worker->company_id);
+            return response()->json([
+                'result' => true,
+                'data' => $worker,
+                'company' => $company
+            ]);
+        }
+        else{
+            return response()->json([
+                'result' => false
+            ]);
+        }
+    }
+
+    public function removeApplication(Request $request){
+        DB::beginTransaction();
+        try{
+            $worker = Worker::where('worker_id', $request->worker_id)->where('approved', 0);
+            if($worker->first() == null){
+                return response()->json([
+                    'result' => false,
+                    'message' => 'You cannot remove this application'
+                ]);
+            }
+            $worker->delete();
+            DB::commit();
+            return response()->json([
+                    'result' => true,
+                    'message' => 'Success remove application'
+                ]);
+        }
+        catch(\Exception $e){
+            DB::rollback();
+            log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on file ' . $e->getFile());
+            $result = [
+                'result' => true,
+                'message' => 'Error while remove application'
+            ];
+            return response()->json($result);
+        }
     }
 }

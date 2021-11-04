@@ -170,6 +170,7 @@ class UserController extends Controller
                 $worker->worker_id = Str::orderedUuid();
                 $worker->worker_name = $request->full_name;
                 $worker->company_id = $request->company_id;
+                $worker->active = 1;
                 $worker->approved = 1;
                 $worker->no_telp = $request->no_telp;
                 $worker->created_at = Carbon::now();

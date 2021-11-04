@@ -9,6 +9,7 @@ use App\Models\Master\Company;
 use App\Models\Master\Worker;
 use App\Models\Master\Customer;
 use App\Models\Transaction\Job;
+use App\Models\Transaction\Transaction;
 use App\Models\User;
 use Log;
 use DB;
@@ -36,18 +37,11 @@ class JobController extends Controller
     public function index()
     {
         return view('company.job.index')
-        ->with('pageTitle', "Job List");
+            ->with('pageTitle', "Job List");
     }
 
-    public function rejectPayment(Request $request){
-
-    }
-
-    public function approvePayment(Request $request){
-
-    }
-
-    public function getSearch(Request $request, $status, $created_by_customer, $startdate, $enddate){
+    public function getSearch(Request $request, $status, $vehicle_id, $startdate, $enddate)
+    {
         $startdate = Carbon::parse($startdate)->format('Y-m-d');
         $enddate = Carbon::parse($enddate)->format('Y-m-d');
         $offset = $request->start;
@@ -67,31 +61,41 @@ class JobController extends Controller
         $columns = $request->columns;
         $draw = $request->draw;
         $current_page = $offset / $limit + 1;
-        $model = new Payment();
+        $model = new Job();
         $fields = $model->getTableColumns();
         $company_id = auth()->user()->company_id;
-        $payment = Payment::join('transactions', 'transactions.transaction_id', 'payments.transaction_id')->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->where('transactions.company_id', $company_id)->select(['payments.*', 'transactions.total_price', 'm_customer_vehicle.customer_name']);
-        
-        $payment = $payment->whereBetween(DB::raw("DATE_FORMAT(payments.payment_date, '%Y-%m-%d')"), [$startdate, $enddate]);
-        if($status != 'all')
-            $payment = $payment->where('payments.approved', $status);
-        if($created_by_customer == '1')
-            $payment = $payment->whereNotNull('payments.user_id');
-        if($created_by_customer == '0')
-            $payment = $payment->whereNull('payments.user_id');
+        $jobs = Job::select(['jobs.*', 'm_package.package_name', 'm_customer_vehicle.customer_name', 'm_customer_vehicle.vehicle_name', 'm_worker.worker_name'])
+            ->join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')
+            ->join('m_package', 'm_package.package_id', 'transactions.package_id')
+            ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
+            ->leftjoin('m_worker', 'm_worker.worker_id', 'jobs.worker_id')
+            ->where('m_package.company_id', $company_id);
+
+        $jobs = $jobs->whereBetween(DB::raw("DATE_FORMAT(transactions.order_date, '%Y-%m-%d')"), [$startdate, $enddate]);
+        if ($status != 'all') {
+            if ($status != 'home') {
+                $jobs = $jobs->where('jobs.status', $status);
+            } else {
+                $jobs = $jobs->where('jobs.status', '<>', 3);
+            }
+        }
+        if ($vehicle_id == 'all')
+            $jobs = $jobs->where('m_package.vehicle_id', $vehicle_id);
+
         // search data
         if ($keyword != null) {
             if (!empty($keyword)) {
-                $payment->where(function ($query) use ($keyword, $fields) {
+                $jobs->where(function ($query) use ($keyword, $fields) {
                     foreach ($fields as $column) {
-                        $query->orWhere('payments.'.$column, 'LIKE', "%$keyword%");
+                        $query->orWhere('jobs.' . $column, 'LIKE', "%$keyword%");
                     }
-                    $query->orWhere('transactions.total_price', 'LIKE', "%$keyword%");
                     $query->orWhere('m_customer_vehicle.customer_name', 'LIKE', "%$keyword%");
+                    $query->orWhere('m_customer_vehicle.vehicle_name', 'LIKE', "%$keyword%");
+                    $query->orWhere('m_worker.worker_name', 'LIKE', "%$keyword%");
                 });
             }
         }
-        $filteredData = $payment->get();
+        $filteredData = $jobs->groupBy('jobs.transaction_id')->get();
 
         // sort data
         if (!empty($sort)) {
@@ -108,18 +112,18 @@ class JobController extends Controller
             foreach ($sort as $key => $s) {
                 $column = $s['column'];
                 $direction = $s['dir'];
-                $payment->orderBy($column, $direction);
+                $jobs->orderBy($column, $direction);
             }
         } else {
-            $payment->orderBy('payments.transaction_id', 'asc');
-            $payment->orderBy('payments.payment_date', 'desc');
+            $jobs->orderBy('jobs.index', 'asc');
+            $jobs->orderBy('jobs.status', 'desc');
         }
-        $total_rows = count($payment->get());
+        $total_rows = count($jobs->groupBy('jobs.transaction_id')->get());
 
         // paginate data
         if ($current_page != null) {
             $page = $current_page;
-            $limit = count($payment->get());
+            $limit = count($jobs->groupBy('jobs.transaction_id')->get());
             if ($per_page != null) {
                 $limit = $per_page;
             }
@@ -127,21 +131,22 @@ class JobController extends Controller
             if ($offset < 0) {
                 $offset = 0;
             }
-            $payment->skip($offset)->take($limit);
+            $jobs->skip($offset)->take($limit);
         }
-        $paymentList = $payment->get();
+        $jobsList = $jobs->groupBy('jobs.transaction_id')->get();
 
         $table['draw'] = $draw;
         $table['recordsTotal'] = $total_rows;
         $table['recordsFiltered'] = count($filteredData);
-        $table['data'] = $paymentList;
+        $table['data'] = $jobsList;
         return json_encode($table);
     }
 
-    public function search(Request $request){
+    public function search(Request $request)
+    {
         $date = Carbon::parse($request->date)->format('Y-m-d');
         $model = new Job();
-        $job = $model->searchJobWithVehicle($date, $request->company_id, $request->vehicle_id)->get();
+        $job = $model->searchJobWithVehicle($date, $request->company_id, $request->vehicle_id)->groupBy('jobs.transaction_id')->get();
 
         return response()->json([
             'result' => true,
@@ -150,4 +155,34 @@ class JobController extends Controller
         ]);
     }
 
+    public function getJob(Request $request)
+    {
+        $worker = Worker::where('user_id', auth()->user()->id)->first();
+        $model = Job::select(['jobs.transaction_id', 'm_customer_vehicle.customer_name', 'm_customer_vehicle.vehicle_name', DB::raw("IF(jobs.status = 1, 'On Progress', IF(jobs.status = 2, 'Finished', 'Taken')) as status")])
+            ->join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')
+            ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
+            ->where('worker_id', $worker->worker_id)->get();
+
+        $result = [
+            'result' => true,
+            'data' => $model
+        ];
+        return response()->json($result);
+    }
+
+    public function checkJob(Request $request)
+    {
+        $model = Job::find($request->transaction_id);
+        if ($model != null) {
+            $result = [
+                'result' => true
+            ];
+        } else {
+            $result = [
+                'result' => false
+            ];
+        }
+
+        return response()->json($result);
+    }
 }

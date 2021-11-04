@@ -14,12 +14,13 @@ use App\Models\User;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('test', function(){
+
+Route::get('test', function () {
     return 'test';
 });
 
-Route::post('register', ['uses'=>'API\APIController@register']);
-Route::post('login', ['uses'=>'API\APIController@login']);
+Route::post('register', ['uses' => 'API\APIController@register']);
+Route::post('login', ['uses' => 'API\APIController@login']);
 
 Route::middleware('auth:sanctum')->get('/user/revoke', function (Request $request) {
     $user = $request->user();
@@ -29,14 +30,23 @@ Route::middleware('auth:sanctum')->get('/user/revoke', function (Request $reques
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     // return $request->user();
-    return User::leftjoin('m_customer', 'm_customer.user_id', 'users.id')->select(['m_customer.customer_id','m_customer.customer_name', 'users.email', 'users.username', 'users.user_type', 'users.company_id','users.id as user_id'])->where('users.id',$request->user()->id)->first();
+    return User::leftjoin('m_customer', 'm_customer.user_id', 'users.id')
+        ->leftjoin('m_worker', 'm_worker.user_id', 'users.id')
+        ->select(['m_customer.customer_id', 'm_customer.customer_name', 'users.email', 'users.username', 'users.user_type', 'users.company_id', 'm_worker.active as active_worker', 'users.id as user_id'])->where('users.id', $request->user()->id)->first();
 });
 
 // Route::get('test', ['uses' => [App\Http\Controllers\CompanyController::class, 'index'], 'as' => '/test'])->middleware();
-Route::group(['middleware'=>['auth:sanctum']], function() {
+Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('getCompanyList', 'Master\CompanyController@getCompanyList');
     Route::post('getProfile', 'Master\CustomerController@getProfile');
     Route::post('saveProfile', 'Master\CustomerController@saveProfile');
+    Route::post('changePassword', 'Master\CustomerController@changePassword');
+
+    //company
+    Route::post('company/search', 'Master\CompanyController@companySearch');
+    Route::post('company/workerRegister', 'Master\CompanyController@workerRegister');
+    Route::post('company/getWorkerData', 'Master\CompanyController@getWorkerData');
+    Route::post('company/removeApplication', 'Master\CompanyController@removeApplication');
 
     //vehicle
     Route::post('vehicle/getAll', 'Master\CustomerController@getVehicle');
@@ -45,7 +55,9 @@ Route::group(['middleware'=>['auth:sanctum']], function() {
     Route::post('vehicle/delete', 'Master\CustomerController@deleteVehicle');
     Route::post('vehicle/getType', 'Master\CustomerController@getType');
 
+    //job
     Route::post('job/search', 'Transaction\JobController@search');
+    Route::post('job/checkJob', 'Transaction\JobController@checkJob');
 
     //package
     Route::post('package/search', 'Transaction\TransactionController@packageSearchMobile');
@@ -62,4 +74,11 @@ Route::group(['middleware'=>['auth:sanctum']], function() {
     Route::post('paymentMobile/getList', 'Transaction\PaymentController@getList');
     Route::post('paymentMobile/save', 'Transaction\PaymentController@savePaymentMobile');
     Route::post('paymentMobile/getDetailPayment', 'Transaction\PaymentController@getDetailPayment');
+
+    //payment method
+    Route::post('paymentMethod/getByCompany', 'Master\PaymentMethodController@getByCompany');
+});
+
+Route::group(['middleware' => ['auth:sanctum', 'isWorker']], function () {
+    Route::post('job/getJob', 'Transaction\JobController@getJob');
 });
