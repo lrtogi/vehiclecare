@@ -19,6 +19,8 @@ Route::get('/', function () {
 
 Auth::routes();
 
+Route::post('changePassword', 'Master\UserController@changePassword')->name('changePassword')->middleware('auth:sanctum');
+
 Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function () {
     Route::get('admin/home', 'AdminController@index')->name('admin/home');
     Route::get('admin/companyList/get/search/{active}/{approved}', 'AdminController@getSearch')->name('admin/companyList/get/search');
@@ -28,6 +30,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => 'isAdmin'], function () {
 });
 
 Route::group(['namespace' => 'Master', 'middleware' => 'isAdmin'], function () {
+    Route::get('changePassword', 'UserController@changePasswordFormAdmin')->name('changePassword');
     //vehicle type
     Route::get('admin/vehicleType', 'VehicleController@index')->name('admin/vehicleType');
     Route::get('admin/vehicleType/showForm/{id?}', 'VehicleController@showForm')->name('admin/vehicleType/showForm');
@@ -54,6 +57,7 @@ Route::group(['middleware' => 'isCompany'], function () {
 
     Route::get('home', 'HomeController@index')->name('home');
     Route::get('getDashboard', 'HomeController@getDashboard')->name('getDashboard');
+    Route::get('changePasswordForm', 'Master\UserController@changePasswordForm')->name('changePasswordForm');
 
     //Payment Method
     Route::get('paymentMethod', 'Master\PaymentMethodController@index')->name('paymentMethod');

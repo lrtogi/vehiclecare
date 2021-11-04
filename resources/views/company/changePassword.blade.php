@@ -1,4 +1,4 @@
-@extends('admin.master')
+@extends('company.master')
 
 @section('content')
 
@@ -66,7 +66,7 @@
                 <div class="card-footer">
                     <div class="row">
                         <div class="col-md-4">
-                            <a href="{{ route('admin/home') }}" class="text-light btn btn-secondary">Back</a>
+                            <a href="{{ route('home') }}" class="text-light btn btn-secondary">Back</a>
                         </div>
                         <div class="col-md-8">
                             <ul class="nav justify-content-end">
