@@ -135,10 +135,11 @@ class PaymentController extends Controller
         $model = new Payment();
         $fields = $model->getTableColumns();
         $company_id = auth()->user()->company_id;
-        $payment = Payment::select(['payments.*', 'transactions.total_price', 'm_customer_vehicle.customer_name', 'm_package.package_name'])
+        $payment = Payment::select(['payments.*', 'payment_method.method', 'transactions.total_price', 'm_customer_vehicle.customer_name', 'm_package.package_name'])
             ->join('transactions', 'transactions.transaction_id', 'payments.transaction_id')
             ->join('m_package', 'm_package.package_id', 'transactions.package_id')
             ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
+            ->join('payment_method', 'payment_method.payment_method_id', 'payments.payment_method_id')
             ->where('transactions.company_id', $company_id);
 
         if ($startdate != 'all' && $enddate != 'all')
@@ -160,6 +161,7 @@ class PaymentController extends Controller
                     $query->orWhere('transactions.total_price', 'LIKE', "%$keyword%");
                     $query->orWhere('m_package.package_name', 'LIKE', "%$keyword%");
                     $query->orWhere('m_customer_vehicle.customer_name', 'LIKE', "%$keyword%");
+                    $query->orWhere('payment_method.method', 'LIKE', "%$keyword%");
                 });
             }
         }

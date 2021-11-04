@@ -57,7 +57,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     //job
     Route::post('job/search', 'Transaction\JobController@search');
-    Route::post('job/checkJob', 'Transaction\JobController@checkJob');
 
     //package
     Route::post('package/search', 'Transaction\TransactionController@packageSearchMobile');
@@ -81,4 +80,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 Route::group(['middleware' => ['auth:sanctum', 'isWorker']], function () {
     Route::post('job/getJob', 'Transaction\JobController@getJob');
+    Route::post('job/checkJob', 'Transaction\JobController@checkJob');
+    Route::post('job/changeStatus', 'Transaction\JobController@changeJobStatus');
+    Route::post('job/jobDetail', 'Transaction\JobController@jobDetail');
 });

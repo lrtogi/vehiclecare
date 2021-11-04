@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Master\Company;
+use App\Models\Master\DefaultApp;
 use App\Models\User;
 use Log;
 use DB;
@@ -30,11 +31,12 @@ class AdminController extends Controller
     {
         $companyPending = Company::where('approved', 0)->count();
         return view('admin.home')
-        ->with('pageTitle', 'Admin Home')
-        ->with('companyPending', $companyPending);
+            ->with('pageTitle', 'Admin Home')
+            ->with('companyPending', $companyPending);
     }
 
-    public function getSearch(Request $request, $active, $approved) {
+    public function getSearch(Request $request, $active, $approved)
+    {
         $offset = $request->start;
         $per_page = $request->length;
         $limit = $per_page;
@@ -54,18 +56,18 @@ class AdminController extends Controller
         $current_page = $offset / $limit + 1;
         $model = new Company();
         $fields = $model->getTableColumns();
-        
+
         $company = Company::select();
-        if($active != 'all')
+        if ($active != 'all')
             $company = $company->where('active', $active);
-        if($approved != 'all')
+        if ($approved != 'all')
             $company = $company->where('approved', $approved);
         // search data
         if ($keyword != null) {
             if (!empty($keyword)) {
                 $company->where(function ($query) use ($keyword, $fields) {
                     foreach ($fields as $column) {
-                        $query->orWhere('m_company.'.$column, 'LIKE', "%$keyword%");
+                        $query->orWhere('m_company.' . $column, 'LIKE', "%$keyword%");
                     }
                 });
             }
@@ -118,7 +120,8 @@ class AdminController extends Controller
         return json_encode($table);
     }
 
-    public function getDashboard(){
+    public function getDashboard()
+    {
         $companyPending = Company::where('approved', 0)->count();
         $activeCompany = Company::where('active', 1)->count();
         $totalUser = User::count();
@@ -130,23 +133,38 @@ class AdminController extends Controller
         ]);
     }
 
-    public function approveCompany(Request $request){
+    public function approveCompany(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
+            // $defaultAppList = [
+            //     'Default Payment Method' => ['', 'payment_method']
+            // ];
             $company = Company::find($request->company_id);
             $company->approved = 1;
             $company->active = 1;
             $company->save();
+
+            // foreach ($defaultAppList as $key => $value) {
+            //     $defaultApp = new DefaultApp();
+            //     $defaultApp->default_id = $key;
+            //     $defaultApp->default_name = $key;
+            //     $defaultApp->value = $value[0];
+            //     $defaultApp->company_id = $company->company_id;
+            //     $defaultApp->notes = $value[1];
+            //     $defaultApp->created_user = auth()->user()->username;
+            //     $defaultApp->updated_user = auth()->user()->username;
+            //     $defaultApp->save();
+            // }
 
             DB::commit();
             return redirect()->back()->with([
                 'result' => true,
                 'success' => "Success Approve Company"
             ]);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
-            log::debug($e->getMessage(). " on line ". $e->getLine() . " on File ". $e->getFile());
+            log::debug($e->getMessage() . " on line " . $e->getLine() . " on File " . $e->getFile());
             $message = "Error while approve company";
             return redirect()->back()->with([
                 'result' => false,
@@ -155,9 +173,10 @@ class AdminController extends Controller
         }
     }
 
-    public function rejectCompany(Request $request){
+    public function rejectCompany(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $company = Company::find($request->company_id);
             $company->approved = 2;
             $company->save();
@@ -167,10 +186,9 @@ class AdminController extends Controller
                 'result' => true,
                 'success' => "Success Reject Company"
             ]);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
-            log::debug($e->getMessage(). " on line ". $e->getLine() . " on File ". $e->getFile());
+            log::debug($e->getMessage() . " on line " . $e->getLine() . " on File " . $e->getFile());
             $message = "Error while reject company";
             return redirect()->back()->with([
                 'result' => false,
@@ -178,5 +196,4 @@ class AdminController extends Controller
             ]);
         }
     }
-
 }

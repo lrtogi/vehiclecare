@@ -212,6 +212,14 @@
         };
 
         function retrieveTableData() {
+            var today = new Date();
+            var date =
+                today.getFullYear() +
+                "-" +
+                (today.getMonth() + 1) +
+                "-" +
+                today.getDate();
+            var dateTime = date;
             vehicleType.forEach(element => {
                 var vehicle_id = element.vehicle_id;
                 var tableID =
@@ -250,8 +258,8 @@
                             width: "6%"
                         },
                         {
-                            data: "payment_date",
-                            name: "payments.payment_date",
+                            data: "vehicle_name",
+                            name: "m_customer_vehicle.vehicle_name",
                             width: "6%"
                         },
                         {
@@ -260,13 +268,22 @@
                             width: "6%"
                         },
                         {
-                            data: "total_price",
-                            name: "transactions.total_price",
-                            width: "6%"
+                            data: "status",
+                            name: "jobs.status",
+                            width: "6%",
+                            render: function(data, type, row) {
+                                if (data == 0) {
+                                    return "Waiting";
+                                } else if (data == 1) {
+                                    return "On Process";
+                                } else if (data == 2) {
+                                    return "Finished";
+                                } else return "Taken";
+                            }
                         },
                         {
-                            data: "total_payment",
-                            name: "payments.total_payment",
+                            data: "worker_name",
+                            name: "m_worker.worker_name",
                             width: "6%"
                         }
                     ],

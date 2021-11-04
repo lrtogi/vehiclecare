@@ -109,6 +109,20 @@
                                 name="total_price" id="total_price" class="form-control numajaDesimal price" required>
                         </div>
                     </div>
+                    <div class="form-group row">
+                        <label for="payment_method" class="col-md-4 col-form-label">Payment Method : <span
+                                class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <select name="payment_method" id="select_payment_method" class="form-control" required>
+                                <option value="" disabled selected hidden>Select Payment Method</option>
+                                @foreach ($paymentMethod as $p)
+                                    <option value="{{ $p->payment_method_id }}"
+                                        {{ isset($model->payment_method_id) ? ($model->payment_method_id == $p->payment_method_id ? 'selected' : '') : '' }}>
+                                        {{ $p->method }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card-footer">
@@ -147,6 +161,7 @@
                 police_number: "<?php echo isset($model->police_number) ? $model->police_number : old('police_number'); ?>",
                 total_price: "<?php echo isset($model->total_price) ? $model->total_price : null; ?>",
                 order_date: "<?php echo isset($model->order_date) ? $model->order_date : old('order_date'); ?>",
+                payment_method: "<?php echo isset($model->payment_method_id) ? $model->payment_method_id : old('payment_method'); ?>"
             },
             methods: {
                 submitForm: function() {

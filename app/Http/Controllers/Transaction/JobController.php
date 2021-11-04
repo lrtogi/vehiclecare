@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use App\Models\Master\Company;
 use App\Models\Master\Worker;
 use App\Models\Master\Customer;
+use App\Models\Master\Package;
 use App\Models\Transaction\Job;
 use App\Models\Transaction\Transaction;
 use App\Models\User;
@@ -36,8 +37,12 @@ class JobController extends Controller
      */
     public function index()
     {
+        $company_id = auth()->user()->company_id;
+        $vehicleType = Package::select('m_vehicle.*')->join('m_vehicle', 'm_vehicle.vehicle_id', 'm_package.vehicle_id')->where('m_package.company_id', $company_id)->where('m_package.active', 1)->groupBy('m_vehicle.vehicle_id')->get();
+
         return view('company.job.index')
-            ->with('pageTitle', "Job List");
+            ->with('pageTitle', "Job List")
+            ->with('vehicleType', $vehicleType);
     }
 
     public function getSearch(Request $request, $status, $vehicle_id, $startdate, $enddate)
@@ -79,7 +84,7 @@ class JobController extends Controller
                 $jobs = $jobs->where('jobs.status', '<>', 3);
             }
         }
-        if ($vehicle_id == 'all')
+        if ($vehicle_id != 'all')
             $jobs = $jobs->where('m_package.vehicle_id', $vehicle_id);
 
         // search data
@@ -172,7 +177,7 @@ class JobController extends Controller
 
     public function checkJob(Request $request)
     {
-        $model = Job::find($request->transaction_id);
+        $model = Job::where('transaction_id', $request->transaction_id)->first();
         if ($model != null) {
             $result = [
                 'result' => true
@@ -184,5 +189,95 @@ class JobController extends Controller
         }
 
         return response()->json($result);
+    }
+
+    public function jobDetail(Request $request)
+    {
+        $worker = Worker::where('user_id', auth()->user()->id)->first();
+        $job = Job::select(['jobs.transaction_id', 'jobs.status', 'm_customer_vehicle.customer_name', 'm_customer_vehicle.vehicle_name', 'm_customer_vehicle.police_number', 'm_customer_vehicle.vehicle_photo_url', 'm_package.package_name'])
+            ->join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')
+            ->join('m_package', 'm_package.package_id', 'transactions.package_id')
+            ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
+            ->where('jobs.transaction_id', $request->transaction_id)->where('jobs.worker_id', $worker->worker_id)->first();
+
+        $result = [
+            'result' => true,
+            'message' => 'Success get data',
+            'data' => $job
+        ];
+        return response()->json($result);
+    }
+
+    public function changeJobStatus(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $worker = Worker::where('user_id', auth()->user()->id)->first();
+            $transaction = Transaction::find($request->transaction_id);
+            if ($transaction == null) {
+                $result = [
+                    'result' => false,
+                    'message' => 'Data not found'
+                ];
+                DB::rollback();
+                return response()->json($result);
+            }
+            if ($transaction->status != 2) {
+                $result = [
+                    'result' => false,
+                    'message' => 'Transaction is not completed yet'
+                ];
+                DB::rollback();
+                return response()->json($result);
+            }
+            $job = Job::where('transaction_id', $transaction->transaction_id)->orderBy('status', 'desc')->first();
+            $newJob = Job::where('transaction_id', $transaction->transaction_id)->where('worker_id', $worker->worker_id)->first();
+            if ($newJob == null) {
+                if ($job->worker_id != null) {
+                    $newJob = new Job();
+                    $newJob->transaction_id = $transaction->transaction_id;
+                    $newJob->worker_id = $worker->worker_id;
+                    $newJob->index = $job->index;
+                    $newJob->created_user = auth()->user()->username;
+                    $newJob->start = $job->start;
+                } else {
+                    $newJob = $job;
+                    $newJob->worker_id = $worker->worker_id;
+                    $newJob->created_user = auth()->user()->username;
+                    $newJob->start = $job->start;
+                }
+            }
+            if ($job->status == 3) {
+                $result = [
+                    'result' => false,
+                    'message' => 'Job has been finished and taken by the owner'
+                ];
+                DB::rollback();
+                return response()->json($result);
+            }
+            if ($job->start == null) {
+                $newJob->start = Carbon::now()->format('Y-m-d H:i:s');
+            }
+            if ($request->status == 2) {
+                $newJob->end = Carbon::now()->format('Y-m-d H:i:s');
+            }
+            $newJob->status = $request->status;
+            $job = Job::where('transaction_id', $transaction->transaction_id)->update(['status' => $request->status, 'end' => $newJob->end, 'updated_user' => auth()->user()->username]);
+            $newJob->save();
+            DB::commit();
+            $result = [
+                'result' => true,
+                'message' => 'Success change job status'
+            ];
+            return response()->json($result);
+        } catch (\Exception $e) {
+            DB::rollback();
+            log::debug($e->getMessage() . " on line " . $e->getLine() . ' on file ' . $e->getFile());
+            $result = [
+                'result' => false,
+                'message' => 'Error while change job status'
+            ];
+            return response()->json($result);
+        }
     }
 }

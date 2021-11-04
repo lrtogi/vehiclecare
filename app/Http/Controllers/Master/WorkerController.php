@@ -126,6 +126,18 @@ class WorkerController extends Controller
             $worker->updated_at = Carbon::now();
             $worker->updated_user = $request->username;
             $worker->save();
+
+            $customer = new Customer();
+            $customer->customer_id = Str::orderedUuid();
+            $customer->customer_name = $request->full_name;
+            $customer->alamat = $request->alamat;
+            $customer->no_telp = $request->no_telp;
+            $customer->user_id = $userID;
+            $customer->created_at = Carbon::now();
+            $customer->created_user = $request->username;
+            $customer->updated_at = Carbon::now();
+            $customer->updated_user = $request->username;
+            $customer->save();
         } else {
             $worker = Worker::findOrFail($worker_id);
             if ($worker->user_id == null) {

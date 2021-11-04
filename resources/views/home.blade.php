@@ -126,6 +126,50 @@
                     </div>
                 @endforeach
             </div>
+        @else
+            <div class="row">
+                @foreach ($vehicleType as $vt)
+                    <div class="col-md-12">
+                        <div class="card-header py-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6 class="m-0 font-weight-bold text-primary">{{ $vt->vehicle_type }}</h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table txt-sm" role="grid"
+                                    id="data-table-achievement-{{ $vt->vehicle_id }}">
+                                    <thead class="thead-default">
+                                        <tr role="row">
+                                        <tr>
+                                            <th>Customer Name</th>
+                                            <th>Vehicle Name</th>
+                                            <th>Package</th>
+                                            <th>Status</th>
+                                            <th>Workers</th>
+                                        </tr>
+                                    </thead>
+                                    <tfoot class="thead-default">
+                                        <tr role="row">
+                                        <tr>
+                                            <th>Customer Name</th>
+                                            <th>Vehicle Name</th>
+                                            <th>Package</th>
+                                            <th>Status</th>
+                                            <th>Workers</th>
+                                        </tr>
+                                        </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         @endif
     </div>
     <div class="modal fade modal-size-large" id="m_payment" tabindex="-1" role="dialog">

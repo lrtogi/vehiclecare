@@ -80,6 +80,7 @@ class TransactionController extends Controller
         if ($transaction_id != null) {
             $model = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')
                 ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
+                ->leftjoin('payments', 'payments.transaction_id', 'transactions.transaction_id')
                 ->where('transactions.transaction_id', $transaction_id)
                 ->where('jobs.status', 0)->first();
             if ($model == null) {
@@ -97,19 +98,23 @@ class TransactionController extends Controller
         $vehicleType = Vehicle::all();
         $package = Package::where('company_id', auth()->user()->company_id)->get();
         $paymentMethod = PaymentMethod::where('company_id', auth()->user()->company_id)->get();
-
         return view('company.transaction.form')
             ->with('pageTitle', 'Transaction Form')
             ->with('model', $model)
             ->with('vehicleType', $vehicleType)
-            ->with('package', $package);
+            ->with('package', $package)
+            ->with('paymentMethod', $paymentMethod);
     }
 
     public function store(Request $request)
     {
         DB::beginTransaction();
         $company_id = auth()->user()->company_id;
-        $defaultPaymentMethod = DefaultApp::getByID('Default Payment Method', $company_id);
+        $defaultPaymentMethod = PaymentMethod::where('payment_method_id', $request->payment_method)->where('company_id', $company_id)->first();
+        if ($defaultPaymentMethod == '' || $defaultPaymentMethod == null) {
+            return redirect()->back()->with('error', 'Payment Method not found')->withInput();
+        }
+        $defaultPaymentMethod = $defaultPaymentMethod->payment_method_id;
         $transaction_id = $request->input('transactionID') != null ? $request->transactionID : null;
         $package = Package::where('package_id', $request->package_type)->where('company_id', $company_id)->first();
         if ($package == null) {
@@ -403,8 +408,8 @@ class TransactionController extends Controller
         try {
             $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')
                 ->where('transactions.transaction_id', $request->transaction_id)
-                ->select(['transactions.transaction_id', DB::raw("DATE_FORMAT(transactions.order_date, '%d-%m-%Y') as order_date"), 'customer_vehicle_id', 'package_id', 'total_price', 'company_id', 'transactions.status as status', 'jobs.status as job_status'])->first();
-            $job = Job::find($transaction->transaction_id);
+                ->select(['transactions.transaction_id', DB::raw("DATE_FORMAT(transactions.order_date, '%d-%m-%Y') as order_date"), 'customer_vehicle_id', 'package_id', 'total_price', 'company_id', 'transactions.status as status', 'jobs.status as job_status', DB::raw("DATE_FORMAT(jobs.start,'%H:%i:%s') as start"), DB::raw("DATE_FORMAT(jobs.end,'%H:%i:%s') as end")])->orderBy('status', 'desc')->groupBy('jobs.transaction_id')->first();
+            $job = Job::where('transaction_id', $transaction->transaction_id)->orderBy('status', 'desc')->first();
             if (!empty($job) && $transaction->status != 0 && $transaction->status != 1 && $transaction->status != 4)
                 $editable = false;
             else
@@ -470,7 +475,7 @@ class TransactionController extends Controller
                 if ($transaction->company_id != $request->company_id || !empty($job)) {
                     $result = [
                         'result' => false,
-                        'message' => "You are cannot edit this data"
+                        'message' => "You cannot edit this data"
                     ];
                     return response()->json($result);
                 }

@@ -49,6 +49,7 @@
                                 <th>Customer Name</th>
                                 <th>Total Payment</th>
                                 <th>Total Price</th>
+                                <th>Payment Method</th>
                                 <th>Approved</th>
                                 <th>Action</th>
                             </tr>
@@ -60,6 +61,7 @@
                                 <th>Customer Name</th>
                                 <th>Total Payment</th>
                                 <th>Total Price</th>
+                                <th>Payment Method</th>
                                 <th>Approved</th>
                                 <th>Action</th>
                             </tr>
@@ -174,7 +176,7 @@
                     </div>
                     <form action="{{ route('payment/rejectPayment') }}" method="post" id="form-delete" target="_self">
                         {{ csrf_field() }}
-                        <div class="modal-body modalsContent">
+                        <div class="modal-body modalsContentReject">
 
                         </div>
                         <div class="modal-footer">
@@ -196,7 +198,7 @@
                     </div>
                     <form action="{{ route('payment/approvePayment') }}" method="post" id="form-delete" target="_self">
                         {{ csrf_field() }}
-                        <div class="modal-body modalsContent">
+                        <div class="modal-body modalsContentApprove">
 
                         </div>
                         <div class="modal-footer">
@@ -204,6 +206,28 @@
                             <button type="submit" id="btn-save" class="btn btn-primary">Approve</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade modal-size-small" id="detailModal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="titlePaymentDetail"></h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                    </div>
+                    {{-- <form action="{{ route('payment/rejectPayment') }}" method="post" id="form-delete" target="_self"> --}}
+                    {{-- {{ csrf_field() }} --}}
+                    <div class="modal-body modalsContentDetail">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-pure mr-auto" data-dismiss="modal">Close</button>
+                        {{-- <button type="submit" id="btn-save" class="btn btn-danger">Reject</button> --}}
+                    </div>
+                    {{-- </form> --}}
                 </div>
             </div>
         </div>

@@ -65,6 +65,11 @@ window.searchData = function(element) {
                 width: "6%"
             },
             {
+                data: "method",
+                name: "payment_method.method",
+                width: "6%"
+            },
+            {
                 data: "approved",
                 name: "payments.approved",
                 width: "6%",
@@ -86,9 +91,20 @@ window.searchData = function(element) {
                 width: "6%",
                 orderable: false,
                 render: function(data, type, row) {
-                    var action_view = "";
+                    var action_view =
+                        '<button onclick="detailModal(this)" class="btn btn-success btn-xs margr5 approve" data-id="' +
+                        data +
+                        '" data-file="' +
+                        row["file"] +
+                        '" data-customer_name="' +
+                        row["customer_name"] +
+                        '" data-payment_date="' +
+                        row["payment_date"] +
+                        '" data-payment_method="' +
+                        row["method"] +
+                        '"><i class="fa fa-search" title="Detail"></i></button>';
                     if (row["approved"] == 0) {
-                        var action_view =
+                        action_view +=
                             '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="' +
                             data +
                             '" data-file="' +
@@ -185,6 +201,11 @@ window.searchData = function(element) {
                     width: "6%"
                 },
                 {
+                    data: "method",
+                    name: "payment_method.method",
+                    width: "6%"
+                },
+                {
                     data: "approved",
                     name: "payments.approved",
                     width: "6%",
@@ -206,9 +227,20 @@ window.searchData = function(element) {
                     width: "6%",
                     orderable: false,
                     render: function(data, type, row) {
-                        var action_view = "";
+                        var action_view =
+                            '<button onclick="detailModal(this)" class="btn btn-success btn-xs margr5 approve" data-id="' +
+                            data +
+                            '" data-file="' +
+                            row["file"] +
+                            '" data-customer_name="' +
+                            row["customer_name"] +
+                            '" data-payment_date="' +
+                            row["payment_date"] +
+                            '" data-payment_method="' +
+                            row["method"] +
+                            '"><i class="fa fa-search" title="Detail"></i></button>';
                         if (row["approved"] == 0) {
-                            var action_view =
+                            action_view +=
                                 '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="' +
                                 data +
                                 '" data-file="' +
@@ -267,12 +299,12 @@ window.searchData = function(element) {
                 '<div class="form-group row">' +
                 '<label for="Download Button" class="col-md-4 col-form-label"></label>' +
                 '<div class="col-md-6">' +
-                '<button type="button" id="downloadImage" class="btn btn-success btn-xs margr5"><i class="fa fa-download" title="download"></i> Download Image</button>' +
+                '<a type="button" id="downloadImage" class="btn btn-success btn-xs margr5 text-white"><i class="fa fa-download" title="download"></i> Download Image</a>' +
                 "</div>" +
                 "</div>";
             html +=
                 "<div class='row input-wrapper'><div class='col-sm-6'><label class='col-form-label'>Transaction Approval<span class='text-danger'></span></label></div><div class='col-sm-6'><select class='form-control' name='approval_type'><option value='1' selected>Completed</option><option value='4'>Half Approved</option></select></div></div>";
-            $(".modalsContent").html(html);
+            $(".modalsContentApprove").html(html);
             $("#approveModal").modal("show");
 
             let btnDownload = document.querySelector("#downloadImage");
@@ -320,13 +352,68 @@ window.searchData = function(element) {
                 '<button type="button" id="downloadImage" class="btn btn-success btn-xs margr5"><i class="fa fa-download" title="download"></i> Download Image</button>' +
                 "</div>" +
                 "</div>";
-            $(".modalsContent").html(html);
+            $(".modalsContentReject").html(html);
             $("#rejectModal").modal("show");
 
             let btnDownload = document.querySelector("#downloadImage");
             btnDownload.addEventListener("click", () => {
                 alert("bos");
                 let img = document.querySelector("#imageFile");
+
+                let imagePath = img.getAttribute("src");
+                let fileName = getFileName(imagePath);
+                saveAs(imagePath, fileName);
+            });
+        };
+
+        window.detailModal = function(element) {
+            var file = $(element).data("file");
+            var data = $(element).data("id");
+            var name = $(element).data("customer_name");
+            var date = $(element).data("payment_date");
+            var paymentMethod = $(element).data("payment_method");
+            $("#titlePaymentDetail").html("Detail Payment");
+            var html = "<input type='hidden' name='idAccess' value='locked' />";
+            html +=
+                "<input type='hidden' name= 'payment_id' value='" +
+                data +
+                "' />";
+            html +=
+                "<div class='row input-wrapper'> " +
+                "<div class='col-sm-4'> " +
+                "<p class='nomarg text-left word-straight'> " +
+                "<label class='col-form-label'>Payment Method : </label> </p> </div>" +
+                "<div class='col-sm-6'>" +
+                "<label class='col-form-label'> " +
+                paymentMethod +
+                "</label> " +
+                "</div>" +
+                "</div>";
+            html +=
+                '<div class="form-group row">' +
+                '<label for="Customer Name" class="col-md-4 col-form-label">Image File : </label>' +
+                '<div class="col-md-6">' +
+                '<img id="imageFile2" src="' +
+                image_url +
+                "/" +
+                file +
+                '" class=""/>' +
+                "</div>" +
+                "</div>";
+            html +=
+                '<div class="form-group row">' +
+                '<label for="Download Button" class="col-md-4 col-form-label"></label>' +
+                '<div class="col-md-6">' +
+                '<button type="button" id="downloadImage2" class="btn btn-success btn-xs margr5"><i class="fa fa-download" title="download"></i> Download Image</button>' +
+                "</div>" +
+                "</div>";
+            $(".modalsContentDetail").html(html);
+            $("#detailModal").modal("show");
+
+            let btnDownload = document.querySelector("#downloadImage2");
+            btnDownload.addEventListener("click", () => {
+                alert("bos");
+                let img = document.querySelector("#imageFile2");
 
                 let imagePath = img.getAttribute("src");
                 let fileName = getFileName(imagePath);

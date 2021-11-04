@@ -87,8 +87,10 @@ $(document).ready(function() {
                         result = "Pending Approval";
                     } else if (data == 2) {
                         result = "Approved";
-                    } else {
+                    } else if (data == 3) {
                         result = "Canceled";
+                    } else {
+                        result = "Half Approved";
                     }
                     return result;
                 }
@@ -99,11 +101,15 @@ $(document).ready(function() {
                 width: "6%",
                 orderable: false,
                 render: function(data, type, row) {
-                    var action_view = "";
+                    var action_view =
+                        '<a href="' +
+                        detailUrl +
+                        "/" +
+                        row["transaction_id"] +
+                        '"class="btn btn-success btn-sm btn-icon-split mr-1"><span class="icon text-white-50"><i class="fas fa-search"></i></span><span class="text">Detail</span></a>';
                     if (row["customer_id"] == null) {
                         if (row["status"] == 1) {
-                            action_view =
-                                action_view +
+                            action_view +=
                                 '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="' +
                                 data +
                                 '" data-customer_name="' +
@@ -121,11 +127,6 @@ $(document).ready(function() {
                         } else if (row["status"] == 2 || row["status"] == 1) {
                             action_view =
                                 action_view +
-                                '<a href="' +
-                                detailUrl +
-                                "/" +
-                                row["transaction_id"] +
-                                '"class="btn btn-secondary btn-sm btn-icon-split mr-1"><span class="icon text-white-50"><i class="fas fa-info-circle"></i></span><span class="text">Detail</span></a>' +
                                 '<a href="' +
                                 formUrl +
                                 "/" +
@@ -305,11 +306,15 @@ window.searchData = function(element) {
                 width: "6%",
                 orderable: false,
                 render: function(data, type, row) {
-                    var action_view = "";
+                    var action_view =
+                        '<a href="' +
+                        detailUrl +
+                        "/" +
+                        row["transaction_id"] +
+                        '"class="btn btn-success btn-sm btn-icon-split mr-1"><span class="icon text-white-50"><i class="fas fa-search"></i></span><span class="text">Detail</span></a>';
                     if (row["customer_id"] == null) {
                         if (row["status"] == 1) {
-                            action_view =
-                                action_view +
+                            action_view +=
                                 '<button onclick="approveModal(this)" class="btn btn-primary btn-xs margr5 approve" data-id="' +
                                 data +
                                 '" data-customer_name="' +
@@ -327,11 +332,6 @@ window.searchData = function(element) {
                         } else if (row["status"] == 2 || row["status"] == 1) {
                             action_view =
                                 action_view +
-                                '<a href="' +
-                                detailUrl +
-                                "/" +
-                                row["transaction_id"] +
-                                '"class="btn btn-secondary btn-sm btn-icon-split mr-1"><span class="icon text-white-50"><i class="fas fa-info-circle"></i></span><span class="text">Detail</span></a>' +
                                 '<a href="' +
                                 formUrl +
                                 "/" +

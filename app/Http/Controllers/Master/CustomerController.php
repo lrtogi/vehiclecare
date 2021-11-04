@@ -32,7 +32,7 @@ class CustomerController extends Controller
      */
     public function getProfile()
     {
-        $customer = User::join('m_customer', 'm_customer.user_id', 'users.id')->where('id',auth()->user()->id)->first();
+        $customer = User::join('m_customer', 'm_customer.user_id', 'users.id')->where('id', auth()->user()->id)->first();
         $result = [
             'result' => true,
             'message' => 'Success get data',
@@ -41,16 +41,17 @@ class CustomerController extends Controller
         return response()->json($result);
     }
 
-    public function changePassword(Request $request){
+    public function changePassword(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $user = User::find(auth()->user()->id);
             $currenPassword = $request->current_password;
             $newPassword = $request->new_password;
 
             $hashCheck = Hash::check($currenPassword, $user->password);
 
-            if(!$hashCheck){
+            if (!$hashCheck) {
                 $result = [
                     'result' => false,
                     'message' => 'Current Password is incorrect'
@@ -67,8 +68,7 @@ class CustomerController extends Controller
                 'message' => 'Success Change Password'
             ];
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
             log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
             $result = [
@@ -79,9 +79,10 @@ class CustomerController extends Controller
         }
     }
 
-    public function saveProfile(Request $request){
+    public function saveProfile(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $user = User::find(auth()->user()->id);
             $user->email = $request->email;
             $user->save();
@@ -92,16 +93,17 @@ class CustomerController extends Controller
             $customer->alamat = $request->address;
             $customer->save();
 
+            $customerVehicle = CustomerVehicle::where('customer_id', $customer->customer_id)->update(['customer_name' => $customer->customer_name]);
+
             $result = [
                 'result' => true,
                 'message' => 'Success Saving profile'
             ];
             DB::commit();
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
-            log::debug($e->getMessage() . " on line " . $e->getLine() . " on file ". $e->getFile());
+            log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
             return response()->json([
                 'result' => false,
                 'message' => 'An Error occured while saving data'
@@ -109,8 +111,9 @@ class CustomerController extends Controller
         }
     }
 
-    public function getVehicle(Request $request){
-        $customerVehicle = CustomerVehicle::join('m_vehicle','m_vehicle.vehicle_id', 'm_customer_vehicle.vehicle_id')->where('customer_id', $request->customer_id)->get();
+    public function getVehicle(Request $request)
+    {
+        $customerVehicle = CustomerVehicle::join('m_vehicle', 'm_vehicle.vehicle_id', 'm_customer_vehicle.vehicle_id')->where('customer_id', $request->customer_id)->get();
         $result = [
             'result' => true,
             'message' => 'Success get data',
@@ -119,7 +122,8 @@ class CustomerController extends Controller
         return response()->json($result);
     }
 
-    public function getVehicleDetail(Request $request){
+    public function getVehicleDetail(Request $request)
+    {
         $customerVehicle = CustomerVehicle::where('customer_vehicle_id', $request->customer_vehicle_id)->first();
         $result = [
             'result' => true,
@@ -129,39 +133,37 @@ class CustomerController extends Controller
         return response()->json($result);
     }
 
-    public function saveVehicle(Request $request){
+    public function saveVehicle(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $customer = Customer::find($request->customer_id);
             $customer_vehicle_id = $request->input('customer_vehicle_id') != null ? $request->customer_vehicle_id : '';
-            if($customer_vehicle_id != null){
+            if ($customer_vehicle_id != null) {
                 $customerVehicle = CustomerVehicle::find($customer_vehicle_id);
-            }
-            else{
+            } else {
                 $customerVehicle = new CustomerVehicle();
                 $customerVehicle->customer_vehicle_id = Str::orderedUuid();
                 $customerVehicle->customer_id = $customer->customer_id;
-                $customerVehicle->customer_name= $customer->customer_name;
+                $customerVehicle->customer_name = $customer->customer_name;
                 $customerVehicle->created_user = auth()->user()->username;
             }
             $customerVehicle->vehicle_id = $request->vehicle_id;
             $customerVehicle->vehicle_name = $request->vehicle_name;
             $customerVehicle->police_number = $request->police_number;
             $customerVehicle->updated_user = auth()->user()->username;
-            if($request->file('vehicle_photo_url') != null)
-            {
+            if ($request->file('vehicle_photo_url') != null) {
                 // $picData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $request->image));
                 // file_put_contents($_SERVER['DOCUMENT_ROOT']."$servicePath"."$path", $picData);
                 $file = $request->file('vehicle_photo_url');
                 $name = "$customerVehicle->customer_vehicle_id.png";
                 $customerVehicle->vehicle_photo_url = "vehicle_photo/$name";
-                $path = $_SERVER['DOCUMENT_ROOT']."/vehiclecare/public/images/vehicle_photo/";
+                $path = $_SERVER['DOCUMENT_ROOT'] . "/vehiclecare/public/images/vehicle_photo/";
                 $file->move($path, $name);
-            }
-            else{
-                $path = $_SERVER['DOCUMENT_ROOT']."/vehiclecare/public/images/vehicle_photo/";
-                if(file_exists($path.$customerVehicle->customer_vehicle_id.".png"))
-                    unlink($path.$customerVehicle->customer_vehicle_id.".png");
+            } else {
+                $path = $_SERVER['DOCUMENT_ROOT'] . "/vehiclecare/public/images/vehicle_photo/";
+                if (file_exists($path . $customerVehicle->customer_vehicle_id . ".png"))
+                    unlink($path . $customerVehicle->customer_vehicle_id . ".png");
                 $customerVehicle->vehicle_photo_url = null;
             }
             $customerVehicle->save();
@@ -173,8 +175,7 @@ class CustomerController extends Controller
             ];
             DB::commit();
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
             log::debug($e->getMessage() . " on line " . $e->getLine() . " on file " . $e->getFile());
             return response()->json([
@@ -184,13 +185,14 @@ class CustomerController extends Controller
         }
     }
 
-    public function deleteVehicle(Request $request){
+    public function deleteVehicle(Request $request)
+    {
         DB::beginTransaction();
-        try{
-            $path = $_SERVER['DOCUMENT_ROOT']."/vehiclecare/public/images/vehicle_photo/";
+        try {
+            $path = $_SERVER['DOCUMENT_ROOT'] . "/vehiclecare/public/images/vehicle_photo/";
             $customerVehicle = CustomerVehicle::where('customer_vehicle_id', $request->customer_vehicle_id);
-            if(file_exists($path.$customerVehicle->first()->customer_vehicle_id.".png"))
-                    unlink($path.$customerVehicle->first()->customer_vehicle_id.".png");
+            if (file_exists($path . $customerVehicle->first()->customer_vehicle_id . ".png"))
+                unlink($path . $customerVehicle->first()->customer_vehicle_id . ".png");
             $customerVehicle->delete();
             $result = [
                 'result' => true,
@@ -198,8 +200,7 @@ class CustomerController extends Controller
             ];
             DB::commit();
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollback();
             $result = [
                 'result' => false,
@@ -207,10 +208,10 @@ class CustomerController extends Controller
             ];
             return response()->json($result);
         }
-        
     }
 
-    public function getType(Request $request){
+    public function getType(Request $request)
+    {
         $vehicle = Vehicle::get();
 
         $result = [
