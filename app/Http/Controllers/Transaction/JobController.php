@@ -163,7 +163,7 @@ class JobController extends Controller
     public function getJob(Request $request)
     {
         $worker = Worker::where('user_id', auth()->user()->id)->first();
-        $model = Job::select(['jobs.transaction_id', 'm_customer_vehicle.customer_name', 'm_customer_vehicle.vehicle_name', DB::raw("IF(jobs.status = 1, 'On Progress', IF(jobs.status = 2, 'Finished', 'Taken')) as status")])
+        $model = Job::select(['jobs.transaction_id', 'm_customer_vehicle.customer_name', 'm_customer_vehicle.vehicle_name', DB::raw("IF(jobs.status = 0, 'Waiting', IF(jobs.status = 1, 'On Progress', IF(jobs.status = 2, 'Finished', 'Taken'))) as status")])
             ->join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')
             ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
             ->where('worker_id', $worker->worker_id)->get();
@@ -177,15 +177,23 @@ class JobController extends Controller
 
     public function checkJob(Request $request)
     {
-        $model = Job::where('transaction_id', $request->transaction_id)->first();
-        if ($model != null) {
-            $result = [
-                'result' => true
-            ];
-        } else {
+        $worker = Worker::where('user_id', auth()->user()->id)->first();
+        $transaction = Transaction::find($request->transaction_id)->where('company_id', $worker->company_id);
+        if ($transaction == null) {
             $result = [
                 'result' => false
             ];
+        } else {
+            $model = Job::where('transaction_id', $request->transaction_id)->first();
+            if ($model != null) {
+                $result = [
+                    'result' => true
+                ];
+            } else {
+                $result = [
+                    'result' => false
+                ];
+            }
         }
 
         return response()->json($result);
@@ -194,11 +202,11 @@ class JobController extends Controller
     public function jobDetail(Request $request)
     {
         $worker = Worker::where('user_id', auth()->user()->id)->first();
-        $job = Job::select(['jobs.transaction_id', 'jobs.status', 'm_customer_vehicle.customer_name', 'm_customer_vehicle.vehicle_name', 'm_customer_vehicle.police_number', 'm_customer_vehicle.vehicle_photo_url', 'm_package.package_name'])
+        $job = Job::select(['jobs.transaction_id', 'jobs.status', 'm_customer_vehicle.customer_name', 'm_customer_vehicle.vehicle_name', 'm_customer_vehicle.police_number', 'm_customer_vehicle.vehicle_photo_url', 'm_package.package_name', DB::raw("DATE_FORMAT(transactions.order_date, '%W, %d-%m-%Y') as order_date")])
             ->join('transactions', 'transactions.transaction_id', 'jobs.transaction_id')
             ->join('m_package', 'm_package.package_id', 'transactions.package_id')
             ->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')
-            ->where('jobs.transaction_id', $request->transaction_id)->where('jobs.worker_id', $worker->worker_id)->first();
+            ->where('jobs.transaction_id', $request->transaction_id)->first();
 
         $result = [
             'result' => true,

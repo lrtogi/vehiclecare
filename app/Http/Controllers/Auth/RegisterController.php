@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Auth\Events\Registered;
 use App\Models\User;
 use App\Models\Master\Company;
 use App\Models\Master\Worker;
@@ -64,9 +65,9 @@ class RegisterController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'company_name' => ['required'],
-            'username' => ['required','unique:users,username'],
-            'no_telp' => ['required','numeric'],
-            'no_telp_company' => ['required','numeric'],
+            'username' => ['required', 'unique:users,username'],
+            'no_telp' => ['required', 'numeric'],
+            'no_telp_company' => ['required', 'numeric'],
             'alamat' => ['required']
         ]);
     }
@@ -92,7 +93,7 @@ class RegisterController extends Controller
         $company->created_user = $request['username'];
         $company->updated_at = Carbon::now();
         $company->updated_user = $request['username'];
-        if(!$company->save()){
+        if (!$company->save()) {
             DB::rollback();
             $error = "An Error occured while saving company data.";
             return redirect()->back()->with('error', $error);
@@ -109,7 +110,7 @@ class RegisterController extends Controller
         $user->locked = 0;
         $user->created_at = Carbon::now();
         $user->updated_at = Carbon::now();
-        if(!$user->save()){
+        if (!$user->save()) {
             log::debug("error user add");
             DB::rollback();
             $error = "An Error occured while saving company data.";
@@ -120,13 +121,15 @@ class RegisterController extends Controller
         $worker->worker_id = Str::orderedUuid();
         $worker->worker_name = $request['full_name'];
         $worker->company_id = $company->company_id;
+        $worker->no_telp = $request['no_telp'];
+        $worker->active = 1;
         $worker->approved = 1;
         $worker->created_at = Carbon::now();
         $worker->created_user = $request['username'];
         $worker->updated_at = Carbon::now();
         $worker->updated_user = $request['username'];
         $worker->user_id = $uuidUser;
-        if(!$worker->save()){
+        if (!$worker->save()) {
             log::debug('error worker add');
             DB::rollback();
             $error = "Error while saving data worker.";
@@ -142,7 +145,7 @@ class RegisterController extends Controller
         $customer->updated_at = Carbon::now();
         $customer->updated_user = $request['username'];
         $customer->user_id = $uuidUser;
-        if(!$customer->save()){
+        if (!$customer->save()) {
             log::debug('error customer add');
             DB::rollback();
             $error = "Error while saving data customer.";
@@ -153,9 +156,12 @@ class RegisterController extends Controller
         return $user;
     }
 
-    protected function redirectTo()
+    public function register(Request $request)
     {
-        $register="success";
-        return route('login',compact('register'));
+        $this->validator($request->all())->validate();
+
+        event(new Registered($user = $this->create($request->all())));
+        $register = "success";
+        return redirect()->route('login')->with(['register' => 'Successfully Registered! Please wait for approval.']);
     }
 }

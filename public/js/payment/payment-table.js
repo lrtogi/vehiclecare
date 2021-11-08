@@ -288,7 +288,7 @@ window.searchData = function(element) {
                 '<div class="form-group row">' +
                 '<label for="Customer Name" class="col-md-4 col-form-label">Image File : </label>' +
                 '<div class="col-md-6">' +
-                '<img id="imageFile" src="' +
+                '<img width="150" id="imageFile" src="' +
                 image_url +
                 "/" +
                 file +
@@ -309,7 +309,6 @@ window.searchData = function(element) {
 
             let btnDownload = document.querySelector("#downloadImage");
             btnDownload.addEventListener("click", () => {
-                alert("bos");
                 let img = document.querySelector("#imageFile");
 
                 let imagePath = img.getAttribute("src");
@@ -338,7 +337,7 @@ window.searchData = function(element) {
                 '<div class="form-group row">' +
                 '<label for="Customer Name" class="col-md-4 col-form-label">Image File : </label>' +
                 '<div class="col-md-6">' +
-                '<img id="imageFile" src="' +
+                '<img width="150" id="imageFile" src="' +
                 image_url +
                 "/" +
                 file +
@@ -357,7 +356,6 @@ window.searchData = function(element) {
 
             let btnDownload = document.querySelector("#downloadImage");
             btnDownload.addEventListener("click", () => {
-                alert("bos");
                 let img = document.querySelector("#imageFile");
 
                 let imagePath = img.getAttribute("src");
@@ -393,7 +391,7 @@ window.searchData = function(element) {
                 '<div class="form-group row">' +
                 '<label for="Customer Name" class="col-md-4 col-form-label">Image File : </label>' +
                 '<div class="col-md-6">' +
-                '<img id="imageFile2" src="' +
+                '<img width="150" id="imageFile2" src="' +
                 image_url +
                 "/" +
                 file +
@@ -412,7 +410,6 @@ window.searchData = function(element) {
 
             let btnDownload = document.querySelector("#downloadImage2");
             btnDownload.addEventListener("click", () => {
-                alert("bos");
                 let img = document.querySelector("#imageFile2");
 
                 let imagePath = img.getAttribute("src");

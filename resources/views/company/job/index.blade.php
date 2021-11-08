@@ -58,6 +58,7 @@
                                             <thead class="thead-default">
                                                 <tr role="row">
                                                 <tr>
+                                                    <th>Index</th>
                                                     <th>Customer Name</th>
                                                     <th>Vehicle Name</th>
                                                     <th>Package</th>
@@ -68,6 +69,7 @@
                                             <tfoot class="thead-default">
                                                 <tr role="row">
                                                 <tr>
+                                                    <th>Index</th>
                                                     <th>Customer Name</th>
                                                     <th>Vehicle Name</th>
                                                     <th>Package</th>
@@ -102,6 +104,7 @@
                                             <thead class="thead-default">
                                                 <tr role="row">
                                                 <tr>
+                                                    <th>Index</th>
                                                     <th>Customer Name</th>
                                                     <th>Vehicle Name</th>
                                                     <th>Package</th>
@@ -112,6 +115,7 @@
                                             <tfoot class="thead-default">
                                                 <tr role="row">
                                                 <tr>
+                                                    <th>Index</th>
                                                     <th>Customer Name</th>
                                                     <th>Vehicle Name</th>
                                                     <th>Package</th>

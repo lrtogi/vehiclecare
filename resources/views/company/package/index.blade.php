@@ -42,7 +42,6 @@
                     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                         <thead>
                             <tr>
-                                <th>Package ID</th>
                                 <th>Package Name</th>
                                 <th>Vehicle Type</th>
                                 <th>Price</th>
@@ -54,7 +53,6 @@
                         </thead>
                         <tfoot>
                             <tr>
-                                <th>Package ID</th>
                                 <th>Package Name</th>
                                 <th>Vehicle Type</th>
                                 <th>Price</th>
@@ -67,7 +65,6 @@
                         <tbody>
                             @foreach ($package as $p)
                                 <tr>
-                                    <td>{{ $p->package_id }}</td>
                                     <td>{{ $p->package_name }}</td>
                                     <td>{{ $p->vehicle->vehicle_type }}</td>
                                     <td>{{ $p->price }}</td>

@@ -37,6 +37,11 @@ $(document).ready(function() {
                 },
                 columns: [
                     {
+                        data: "index",
+                        name: "jobs.index",
+                        width: "6%"
+                    },
+                    {
                         data: "customer_name",
                         name: "m_customer_vehicle.customer_name",
                         width: "6%"
@@ -71,7 +76,7 @@ $(document).ready(function() {
                         width: "6%"
                     }
                 ],
-                order: [[0, "desc"]]
+                order: [[0, "asc"]]
             });
         });
     };

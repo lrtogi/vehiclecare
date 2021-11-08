@@ -29,7 +29,7 @@
                                             </ul>
                                         </div>
                                     @endif
-                                    @if (isset($_GET['register']) && $_GET['register'] == 'success')
+                                    @if (session()->get('register'))
                                         <div class="alert alert-success">
                                             <p class="text-xs">
                                                 {{ 'Successfully Registered! Please wait for approval.' }}</p>
