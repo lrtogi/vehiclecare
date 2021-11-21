@@ -43,6 +43,7 @@ Route::group(['namespace' => 'Master', 'middleware' => 'isAdmin'], function () {
     Route::post('admin/company/save', 'CompanyController@store')->name('admin/company/save');
     Route::post('admin/company/void', 'CompanyController@void')->name('admin/company/void');
     Route::post('admin/company/unvoid', 'CompanyController@unvoid')->name('admin/company/unvoid');
+    Route::post('admin/company/enter', 'CompanyController@enter')->name('admin/company/enter');
     Route::get('admin/company/getUser/{user_type}', 'CompanyController@getUser')->name('admin/company/getUser');
 
     //user

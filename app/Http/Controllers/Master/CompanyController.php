@@ -33,23 +33,23 @@ class CompanyController extends Controller
         $company = Company::all();
 
         return view('admin.master.company.index')
-                ->with('company', $company)
-                ->with('pageTitle', "Company List");
+            ->with('company', $company)
+            ->with('pageTitle', "Company List");
     }
 
-    public function showForm(Request $request, $id = null){
-        try{
-            if($id == null)
+    public function showForm(Request $request, $id = null)
+    {
+        try {
+            if ($id == null)
                 $model = new Company();
             else
                 $model = Company::findOrFail($id);
 
             return view('admin.master.company.form')
-            ->with('pageTitle', "Company Form")
-            ->with('model',$model);
-        }
-        catch(\Exception $e){
-            log::debug($e->getMessage().' on line ' . $e->getLine() . ' on File ' . $e->getFile());
+                ->with('pageTitle', "Company Form")
+                ->with('model', $model);
+        } catch (\Exception $e) {
+            log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on File ' . $e->getFile());
             $message = "Vehicle ID Not Found";
             return redirect()->back()->with('error', $message);
         }
@@ -58,7 +58,7 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
         DB::beginTransaction();
-        if($request->useExistingEmail1 == 1 && $request->useExistingEmail2 == 1){
+        if ($request->useExistingEmail1 == 1 && $request->useExistingEmail2 == 1) {
             $messages = [
                 'required' => ':Attribute can not empty'
             ];
@@ -67,9 +67,8 @@ class CompanyController extends Controller
                 'company_name' => 'required',
                 'no_telp_company' => 'required|numeric',
                 'alamat_perusahaan' => 'required'
-                ], $messages);
-        }
-        else{
+            ], $messages);
+        } else {
             $messages = [
                 'required' => ':Attribute can not empty'
             ];
@@ -82,7 +81,7 @@ class CompanyController extends Controller
                 'no_telp' => 'required|numeric',
                 'no_telp_company' => 'required|numeric',
                 'alamat_perusahaan' => 'required'
-                ], $messages);
+            ], $messages);
         }
 
         $company = new Company();
@@ -97,13 +96,13 @@ class CompanyController extends Controller
         $company->created_user = auth()->user()->username;
         $company->updated_at = Carbon::now();
         $company->updated_user = auth()->user()->username;
-        if(!$company->save()){
+        if (!$company->save()) {
             DB::rollback();
             $error = "An Error occured while saving company data.";
             return redirect()->back()->with('error', $error);
         }
-        
-        if($request->useExistingEmail1 == 0 && $request->useExistingEmail2 == 0){
+
+        if ($request->useExistingEmail1 == 0 && $request->useExistingEmail2 == 0) {
             $user = new User();
             $uuidUser = Str::orderedUuid();
             $user->id = $uuidUser;
@@ -115,14 +114,13 @@ class CompanyController extends Controller
             $user->locked = 0;
             $user->created_at = Carbon::now();
             $user->updated_at = Carbon::now();
-            if(!$user->save()){
+            if (!$user->save()) {
                 log::debug("error user add");
                 DB::rollback();
                 $error = "An Error occured while saving company data.";
                 return redirect()->back()->with('error', $error);
             }
-        }
-        else{
+        } else {
             $user = User::where('email', $request->email)->first();
             $uuidUser = $user->id;
         }
@@ -139,14 +137,14 @@ class CompanyController extends Controller
         $worker->updated_at = Carbon::now();
         $worker->updated_user = $request->username;
         $worker->user_id = $uuidUser;
-        if(!$worker->save()){
+        if (!$worker->save()) {
             log::debug('error worker add');
             DB::rollback();
             $error = "Error while saving data worker.";
             return redirect()->back()->with('error', $error);
         }
 
-        if($request->useExistingEmail1 == 0 && $request->useExistingEmail2 == 0){
+        if ($request->useExistingEmail1 == 0 && $request->useExistingEmail2 == 0) {
             $customer = new Customer();
             $customer->customer_id = Str::orderedUuid();
             $customer->customer_name = $request->full_name;
@@ -156,7 +154,7 @@ class CompanyController extends Controller
             $customer->updated_at = Carbon::now();
             $customer->updated_user = $request->username;
             $customer->user_id = $uuidUser;
-            if(!$customer->save()){
+            if (!$customer->save()) {
                 log::debug('error customer add');
                 DB::rollback();
                 $error = "Error while saving data customer.";
@@ -166,7 +164,6 @@ class CompanyController extends Controller
         DB::commit();
         $message = "Success Save Company.";
         return redirect()->back()->with('success', $message);
-        
     }
 
     public function void(Request $request)
@@ -176,7 +173,7 @@ class CompanyController extends Controller
         ];
         $this->validate($request, [
             'company_id' => 'required'
-            ], $messages);
+        ], $messages);
         DB::beginTransaction();
         $company = Company::findOrFail($request->company_id);
         $company->active = 0;
@@ -194,7 +191,7 @@ class CompanyController extends Controller
         ];
         $this->validate($request, [
             'company_id' => 'required'
-            ], $messages);
+        ], $messages);
         DB::beginTransaction();
         $company = Company::findOrFail($request->company_id);
         $company->active = 1;
@@ -205,7 +202,8 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function getUser(Request $request, $user_type){
+    public function getUser(Request $request, $user_type)
+    {
         $users = User::where('locked', 0)->whereNull('company_id')->where('user_type', $user_type)->get();
         return response()->json([
             'result' => true,
@@ -213,7 +211,8 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function getCompanyList(Request $request){
+    public function getCompanyList(Request $request)
+    {
         $company = Company::where('active', 1)->get();
         $result = [
             'result' => true,
@@ -223,11 +222,12 @@ class CompanyController extends Controller
         return response($result);
     }
 
-    public function companySearch(Request $request) {
+    public function companySearch(Request $request)
+    {
         $model = new Company();
         $fields = $model->getTableColumns();
         $company = Company::select('*')
-        ->where('active', 1);
+            ->where('active', 1);
 
         // search data
         if ($request->has('search')) {
@@ -241,24 +241,25 @@ class CompanyController extends Controller
             }
         }
         $company = $company->get();
-        $result= [
+        $result = [
             'result' => true,
             'data' => $company
         ];
         return response()
-                        ->json($result);
+            ->json($result);
     }
 
-    public function workerRegister(Request $request){
-        try{
+    public function workerRegister(Request $request)
+    {
+        try {
             $customer = User::join('m_customer', 'm_customer.user_id', 'users.id')->where('users.id', auth()->user()->id)->select('m_customer.*')->first();
             $worker = Worker::where('user_id', auth()->user()->id)->first();
-            if($worker != null){
-                if($worker->active == 1)
+            if ($worker != null) {
+                if ($worker->active == 1)
                     $message = "You are a worker in a company";
-                else if($worker->approved == 1)
+                else if ($worker->approved == 1)
                     $message = 'You have become a worker in a company';
-                else if($worker->approved == 0)
+                else if ($worker->approved == 0)
                     $message = 'You are registering with a company';
                 $result = [
                     'result' => false,
@@ -285,8 +286,7 @@ class CompanyController extends Controller
                 'message' => 'Success Register to a Company'
             ];
             return response()->json($result);
-        }
-        catch(\Exception $e){
+        } catch (\Exception $e) {
             log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on file ' . $e->getFile());
             $result = [
                 'result' => true,
@@ -296,29 +296,30 @@ class CompanyController extends Controller
         }
     }
 
-    public function getWorkerData(Request $request){
+    public function getWorkerData(Request $request)
+    {
         $worker = Worker::where('user_id', auth()->user()->id)->first();
-        
-        if($worker != null){
+
+        if ($worker != null) {
             $company = Company::find($worker->company_id);
             return response()->json([
                 'result' => true,
                 'data' => $worker,
                 'company' => $company
             ]);
-        }
-        else{
+        } else {
             return response()->json([
                 'result' => false
             ]);
         }
     }
 
-    public function removeApplication(Request $request){
+    public function removeApplication(Request $request)
+    {
         DB::beginTransaction();
-        try{
+        try {
             $worker = Worker::where('worker_id', $request->worker_id)->where('approved', 0);
-            if($worker->first() == null){
+            if ($worker->first() == null) {
                 return response()->json([
                     'result' => false,
                     'message' => 'You cannot remove this application'
@@ -327,11 +328,10 @@ class CompanyController extends Controller
             $worker->delete();
             DB::commit();
             return response()->json([
-                    'result' => true,
-                    'message' => 'Success remove application'
-                ]);
-        }
-        catch(\Exception $e){
+                'result' => true,
+                'message' => 'Success remove application'
+            ]);
+        } catch (\Exception $e) {
             DB::rollback();
             log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on file ' . $e->getFile());
             $result = [
@@ -339,6 +339,22 @@ class CompanyController extends Controller
                 'message' => 'Error while remove application'
             ];
             return response()->json($result);
+        }
+    }
+
+    public function enter(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $user = User::find(auth()->user()->id);
+            $user->company_id = $request->company_id;
+            $user->save();
+            DB::commit();
+            return redirect()->back()->with('success', 'Success select company');
+        } catch (\Exception $e) {
+            log::debug($e->getMessage() . ' on line ' . $e->getLine() . ' on File ' . $e->getFile());
+            $message = "Error entering company";
+            return redirect()->back()->with('error', $message);
         }
     }
 }

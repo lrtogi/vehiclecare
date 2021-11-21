@@ -76,11 +76,11 @@
             <li
                 class="nav-item {{ Route::is('admin/vehicleType') || Route::is('admin/vehicleType') ? 'active' : '' }}">
                 <a class="nav-link collapsed" href="{{ route('admin/vehicleType') }}" data-toggle="collapse"
-                    data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                    data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Master Data</span>
                 </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                <div id="collapseOne" class="collapse" aria-labelledby="headingTwo"
                     data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
                         <h6 class="collapse-header">Master Data</h6>
@@ -90,6 +90,38 @@
                             href="{{ route('admin/company') }}">Company</a>
                         <a class="collapse-item {{ Route::is('admin/user') ? 'active' : '' }}"
                             href="{{ route('admin/user') }}">User</a>
+                        <a class="collapse-item {{ Route::is('package') ? 'active' : '' }}"
+                            href="{{ route('package') }}">Package</a>
+                        <a class="collapse-item {{ Route::is('worker') ? 'active' : '' }}"
+                            href="{{ route('worker') }}">Worker</a>
+                        <a class="collapse-item {{ Route::is('paymentMethod') ? 'active' : '' }}"
+                            href="{{ route('paymentMethod') }}">Payment Method</a>
+                    </div>
+                </div>
+            </li>
+
+            <div class="sidebar-heading">
+                Transaction
+            </div>
+
+            <!-- Nav Item - Transaction -->
+            <li
+                class="nav-item {{ Route::is('admin/vehicleType') || Route::is('admin/vehicleType') ? 'active' : '' }}">
+                <a class="nav-link collapsed" href="{{ route('admin/vehicleType') }}" data-toggle="collapse"
+                    data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fas fa-fw fa-layer-group"></i>
+                    <span>Transaction</span>
+                </a>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                    data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Transaction</h6>
+                        <a class="collapse-item {{ Route::is('transaction') ? 'active' : '' }}"
+                            href="{{ route('transaction') }}">Transaction</a>
+                        <a class="collapse-item {{ Route::is('payment') ? 'active' : '' }}"
+                            href="{{ route('payment') }}">Payment</a>
+                        <a class="collapse-item {{ Route::is('job') ? 'active' : '' }}"
+                            href="{{ route('job') }}">Jobs</a>
                     </div>
                 </div>
             </li>

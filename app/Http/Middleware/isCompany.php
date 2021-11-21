@@ -15,10 +15,10 @@ class isCompany
      */
     public function handle($request, Closure $next)
     {
-        if(auth()->user()->user_type == 2){
+        if (auth()->user()->user_type == 2 || auth()->user()->user_type == 3) {
             return $next($request);
         }
-        
-        return redirect('home')->with('alert-danger',"You don't have permission to this site");
+
+        return redirect('home')->with('alert-danger', "You don't have permission to this site");
     }
 }

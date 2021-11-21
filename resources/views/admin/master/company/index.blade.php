@@ -40,32 +40,32 @@
             <div class="card-body">
                 <div class="">
                     <table class=" table txt-sm" role="grid" id="data-table-achievement">
-                    <thead>
-                        <tr>
-                            <th>Company ID</th>
-                            <th>Company Name</th>
-                            <th>PIC Email</th>
-                            <th>Company Address</th>
-                            <th>Company Telephone</th>
-                            <th>Active</th>
-                            <th>Approved</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <th>Company ID</th>
-                            <th>Company Name</th>
-                            <th>PIC Email</th>
-                            <th>Company Address</th>
-                            <th>Company Telephone</th>
-                            <th>Active</th>
-                            <th>Approved</th>
-                            <th>Action</th>
-                        </tr>
-                    </tfoot>
-                    <tbody>
-                    </tbody>
+                        <thead>
+                            <tr>
+                                <th>Company ID</th>
+                                <th>Company Name</th>
+                                <th>PIC Email</th>
+                                <th>Company Address</th>
+                                <th>Company Telephone</th>
+                                <th>Active</th>
+                                <th>Approved</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th>Company ID</th>
+                                <th>Company Name</th>
+                                <th>PIC Email</th>
+                                <th>Company Address</th>
+                                <th>Company Telephone</th>
+                                <th>Active</th>
+                                <th>Approved</th>
+                                <th>Action</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -155,6 +155,29 @@
                             <button type="button" class="btn btn-pure mr-auto" data-dismiss="modal">Close</button>
                             <button type="submit" id="btn-save"
                                 class="btn btn-success btn-report-transaction">Approve</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade modal-size-small" id="enterModal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="titleModalEnter"></h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                    </div>
+                    <form action="{{ route('admin/company/enter') }}" method="post" id="form-enter" target="_self">
+                        {{ csrf_field() }}
+                        <div class="modal-body modalEnter">
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-pure mr-auto" data-dismiss="modal">Close</button>
+                            <button type="submit" id="btn-save"
+                                class="btn btn-success btn-report-transaction">Enter</button>
                         </div>
                     </form>
                 </div>

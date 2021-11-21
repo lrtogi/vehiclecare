@@ -1,4 +1,4 @@
-@extends('company.master')
+@extends(auth()->user()->user_type == 3 ? 'admin.master' : 'company.master')
 
 @section('content')
 

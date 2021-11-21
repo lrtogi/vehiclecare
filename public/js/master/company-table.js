@@ -114,6 +114,12 @@ $(document).ready(function() {
                             row["company_name"] +
                             '"><i class="fa fa-trash" title="Deactivate"></i></button>';
                     }
+                    action_view +=
+                        '<button onclick="enterModal(this)" class="btn btn-primary btn-xs margr5 enter" data-id="' +
+                        data +
+                        '" data-name="' +
+                        row["company_name"] +
+                        '"><i class="fa fa-sign-in-alt" title="Enter"></i></button>';
                     return action_view;
                 }
             }
@@ -165,5 +171,16 @@ $(document).ready(function() {
         html += "Activate Company <strong>" + name + "</strong> ?";
         $(".modalDelete").html(html);
         $("#unvoidModal").modal("show");
+    };
+    window.enterModal = function(element) {
+        var data = $(element).data("id");
+        var name = $(element).data("name");
+        $("#titleModalEnter").html("Enter Company");
+        var html = "<input type='hidden' name='idAccess' value='locked' />";
+        html +=
+            "<input type='hidden' name= 'company_id' value='" + data + "' />";
+        html += "Enter Company <strong>" + name + "</strong> ?";
+        $(".modalEnter").html(html);
+        $("#enterModal").modal("show");
     };
 });
