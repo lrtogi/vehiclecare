@@ -27,7 +27,7 @@ class Job extends Model
             ->where('transactions.company_id', $company_id)
             ->where('transactions.order_date', $date)
             ->where('m_customer_vehicle.vehicle_id', $vehicle_id)
-            ->where('jobs.status', '<>', 2);
+            ->where('jobs.status', '<>', 3);
         return $job;
     }
 

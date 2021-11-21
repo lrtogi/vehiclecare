@@ -408,7 +408,7 @@ class TransactionController extends Controller
         try {
             $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')
                 ->where('transactions.transaction_id', $request->transaction_id)
-                ->select(['transactions.transaction_id', DB::raw("DATE_FORMAT(transactions.order_date, '%d-%m-%Y') as order_date"), 'customer_vehicle_id', 'package_id', 'total_price', 'company_id', 'transactions.status as status', 'jobs.status as job_status', DB::raw("DATE_FORMAT(jobs.start,'%H:%i:%s') as start"), DB::raw("DATE_FORMAT(jobs.end,'%H:%i:%s') as end")])->orderBy('status', 'desc')->groupBy('jobs.transaction_id')->first();
+                ->select(['transactions.transaction_id', DB::raw("DATE_FORMAT(transactions.order_date, '%d-%m-%Y') as order_date"), 'customer_vehicle_id', 'package_id', 'total_price', 'company_id', 'transactions.status as status', 'jobs.status as job_status', DB::raw("DATE_FORMAT(jobs.start,'%H:%i:%s') as start"), DB::raw("DATE_FORMAT(jobs.end,'%H:%i:%s') as end"), 'jobs.index'])->orderBy('status', 'desc')->groupBy('jobs.transaction_id')->first();
             $job = Job::where('transaction_id', $transaction->transaction_id)->orderBy('status', 'desc')->first();
             if (!empty($job) && $transaction->status != 0 && $transaction->status != 1 && $transaction->status != 4)
                 $editable = false;
