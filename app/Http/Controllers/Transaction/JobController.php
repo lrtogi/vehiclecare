@@ -178,7 +178,7 @@ class JobController extends Controller
     public function checkJob(Request $request)
     {
         $worker = Worker::where('user_id', auth()->user()->id)->first();
-        $transaction = Transaction::find($request->transaction_id)->where('company_id', $worker->company_id);
+        $transaction = Transaction::where('transaction_id', $request->transaction_id)->where('company_id', $worker->company_id)->first();
         if ($transaction == null) {
             $result = [
                 'result' => false

@@ -385,7 +385,18 @@ class TransactionController extends Controller
     public function getListData(Request $request)
     {
         try {
-            $transaction = Transaction::join('m_package', 'm_package.package_id', 'transactions.package_id')->join('m_company', 'm_company.company_id', 'm_package.company_id')->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->where('m_customer_vehicle.customer_id', $request->customer_id)->select(['transactions.transaction_id', 'm_customer_vehicle.vehicle_name', 'total_price', 'package_name', DB::raw("DATE_FORMAT(order_date, '%Y-%m-%d') as order_date"), 'transactions.company_id', 'm_company.company_name', 'transactions.status'])->get();
+            $transaction = Transaction::leftjoin('jobs', 'jobs.transaction_id', 'transactions.transaction_id')->join('m_package', 'm_package.package_id', 'transactions.package_id')->join('m_company', 'm_company.company_id', 'm_package.company_id')->join('m_customer_vehicle', 'm_customer_vehicle.customer_vehicle_id', 'transactions.customer_vehicle_id')->where('m_customer_vehicle.customer_id', $request->customer_id)
+                ->select(['transactions.transaction_id', 'transactions.transaction_date', 'transactions.package_id', 'transactions.customer_vehicle_id', 'm_customer_vehicle.vehicle_name', 'total_price', 'package_name', DB::raw("DATE_FORMAT(order_date, '%Y-%m-%d') as order_date"), 'transactions.company_id', 'm_company.company_name', 'transactions.status', 'jobs.status as jobStatus']);
+            if ($request->flag == '0') {
+                $transaction = $transaction->whereIn('transactions.status', [0, 1, 4])->groupBy(['transactions.transaction_id'])->get();
+            } else if ($request->flag == '1') {
+                $transaction = $transaction->whereIn('transactions.status', [2])->where('jobs.status', '<>', 3)->groupBy(['transactions.transaction_id'])->get();
+            } else {
+                $transaction = $transaction->where(function ($query) {
+                    $query->orWhere('jobs.status', 3);
+                    $query->orWhereNull('jobs.status');
+                })->whereIn('transactions.status', [2, 3])->groupBy(['transactions.transaction_id'])->get();
+            }
 
             $result = [
                 'result' => true,

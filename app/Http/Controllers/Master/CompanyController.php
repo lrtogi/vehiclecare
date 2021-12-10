@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\Master\Company;
 use App\Models\User;
 use App\Models\Master\Customer;
+use App\Models\Master\DefaultApp;
 use App\Models\Master\Worker;
+use App\Models\Transaction\Transaction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -214,6 +216,15 @@ class CompanyController extends Controller
     public function getCompanyList(Request $request)
     {
         $company = Company::where('active', 1)->get();
+        foreach ($company as $c) {
+            $transaction = Transaction::join('m_package', 'm_package.package_id', 'transactions.package_id')->where('m_package.company_id', $c->company_id)->where('transactions.order_date', Carbon::now()->format('Y-m-d'))->where('transactions.status', 2)->count();
+            $limit = DefaultApp::where('default_id', 'Limit Job')->where('company_id', $c->company_id)->first();
+            $start = DefaultApp::where('default_id', 'Start Work Hour')->where('company_id', $c->company_id)->first();
+            $end = DefaultApp::where('default_id', 'End Work Hour')->where('company_id', $c->company_id)->first();
+            $c['limit'] = "$transaction/$limit->value";
+            $c['start'] = $start->value;
+            $c['end'] = $end->value;
+        }
         $result = [
             'result' => true,
             'message' => 'Success getting data',
